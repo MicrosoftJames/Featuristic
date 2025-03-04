@@ -40,7 +40,7 @@ mention_of_war = PromptFeatureDefinition(
     name="mention of war", prompt="Whether or not the notion of war is mentioned", llm_return_type=bool)
 
 group = PromptFeatureDefinitionGroup(
-    features=[mention_of_war], preprocess_callback=lambda x: x.text)
+    features=[mention_of_war], preprocess_callback=lambda x: x.text)  # x.text is used to access the text data to be processed
 ```
 
 ### Initialize Featuristic
@@ -62,6 +62,11 @@ featuristic.add_feature_definition(group)
 
 ```python
 import asyncio
+
+@dataclass
+class MyData:
+    text: str
+
 
 data = [MyData("The United States and Russia are at war.")]
 results = asyncio.run(featuristic.extract(data))
