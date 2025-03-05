@@ -9,7 +9,6 @@ class PromptFeatureDefinition():
     def __init__(self, name, prompt: str, llm_return_type: type = str, feature_post_callback: Optional[Callable] = None):
         """
         A custom prompt-based feature.
-<<<<<<< HEAD
 
         Args:
             name (str): The name of the feature.
@@ -34,8 +33,6 @@ class PromptFeatureDefinition():
             ...     feature_post_callback=feature_post_callback
             ... )
             ```
-=======
->>>>>>> 8c82d3f (Add initial project setup with .gitignore, requirements, and core features)
         """
         self.name = name
         self.feature_post_callback = feature_post_callback

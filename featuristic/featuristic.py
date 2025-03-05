@@ -85,13 +85,10 @@ class Featuristic:
         return prompt_features
 
     async def extract(self, data: List):
-<<<<<<< HEAD
         if len(self._feature_definitions) == 0:
             raise ValueError(
                 "No feature definitions have been added to the Featuristic object.")
 
-=======
->>>>>>> 8c82d3f (Add initial project setup with .gitignore, requirements, and core features)
         features = [[] for _ in range(len(data))]
         for feature_definition in self._feature_definitions:
 
