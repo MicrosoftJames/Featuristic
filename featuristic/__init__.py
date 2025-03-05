@@ -1,5 +1,5 @@
-from .feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from .feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 from .featuristic import Featuristic
 
-__all__ = ["Featuristic", "Feature", "FeatureDefinition",
+__all__ = ["Featuristic", "FeatureDefinition",
            "PromptFeatureDefinition", "PromptFeatureDefinitionGroup"]
