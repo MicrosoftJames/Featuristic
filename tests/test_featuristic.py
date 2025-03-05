@@ -1,3 +1,4 @@
+import asyncio
 from turtle import pos
 from typing import List
 from unittest.mock import patch
@@ -6,7 +7,7 @@ from pydantic import BaseModel
 import pytest
 from regex import B
 from featuristic.featuristic import Featuristic
-from featuristic.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 
 
 def test_dynamic_pydantic_model():
@@ -102,3 +103,10 @@ async def test_extract_prompt_features(mock_ainvoke):
     assert isinstance(extracted_features[0], List)
     assert extracted_features[0][0].name == 'animal_list'
     assert extracted_features[0][0].value == 2
+
+
+@pytest.mark.asyncio
+def test_error_if_no_feature_definitions():
+    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    with pytest.raises(ValueError):
+        asyncio.run(f.extract([1, 2, 3]))
