@@ -85,6 +85,10 @@ class Featuristic:
         return prompt_features
 
     async def extract(self, data: List):
+        if len(self._feature_definitions) == 0:
+            raise ValueError(
+                "No feature definitions have been added to the Featuristic object.")
+
         features = [[] for _ in range(len(data))]
         for feature_definition in self._feature_definitions:
 
