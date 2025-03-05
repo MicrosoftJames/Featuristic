@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import asyncio
+from turtle import pos
+>>>>>>> b7585ff (Add error handling for missing feature definitions)
 from typing import List
 from unittest.mock import patch
 
@@ -100,3 +105,9 @@ async def test_extract_prompt_features(mock_ainvoke):
     assert isinstance(extracted_features[0], List)
     assert extracted_features[0][0].name == 'animal_list'
     assert extracted_features[0][0].value == 2
+
+
+def test_error_if_no_feature_definitions():
+    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    with pytest.raises(ValueError):
+        asyncio.run(f.extract([1, 2, 3]))
