@@ -8,7 +8,7 @@ from featuristic.feature import BaseFeatureDefinition, Feature, FeatureDefinitio
 from featuristic.llm import extract_features
 
 
-class Featuristic:
+class FeatureExtractor:
     def __init__(self, aoai_api_key: Optional[str] = None, aoai_api_endpoint: Optional[str] = None, gpt4o_deployment: str = "gpt-4o"):
         self._aoai_api_key = aoai_api_key
         self._aoai_api_endpoint = aoai_api_endpoint

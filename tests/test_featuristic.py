@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 import pytest
-from featuristic.featuristic import Featuristic
+from featuristic.featuristic import FeatureExtractor
 from featuristic.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 
 
@@ -15,7 +15,7 @@ def test_dynamic_pydantic_model():
     group = PromptFeatureDefinitionGroup(
         features=[feature], preprocess_callback=None)
 
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     f.add_feature_definition(group)
 
     assert f._feature_definitions == [group]
@@ -35,7 +35,7 @@ def test_dynamic_pydantic_model():
 
 
 def test_featuristic_init():
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     assert f._feature_definitions == []
 
     feature = PromptFeatureDefinition(name='simple feature', prompt='simple prompt',
@@ -54,7 +54,7 @@ def test_featuristic_init():
 
 
 def test_preprocess_data():
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2)
     f.add_feature_definition(feature)
@@ -65,7 +65,7 @@ def test_preprocess_data():
 
 
 def test_extract_features():
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2)
     f.add_feature_definition(feature)
@@ -89,7 +89,7 @@ async def test_extract_prompt_features(mock_ainvoke):
         animal_list: List[str]
 
     mock_ainvoke.return_value = Response(animal_list=["cat", "dog"])
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = PromptFeatureDefinition(
         name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x))
     group = PromptFeatureDefinitionGroup(
@@ -104,6 +104,6 @@ async def test_extract_prompt_features(mock_ainvoke):
 
 
 def test_error_if_no_feature_definitions():
-    f = Featuristic(aoai_api_endpoint="test", aoai_api_key="test")
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     with pytest.raises(ValueError):
         asyncio.run(f.extract([1, 2, 3]))
