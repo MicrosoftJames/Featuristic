@@ -4,8 +4,8 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field, create_model
 
-from featuristic.feature import BaseFeatureDefinition, Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinitionGroup
-from featuristic.llm import extract_features
+from featuristic.features.feature import BaseFeatureDefinition, Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinitionGroup
+from featuristic.features.llm import extract_features
 
 
 class FeatureExtractor:

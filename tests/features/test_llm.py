@@ -5,11 +5,11 @@ import pytest
 
 from pydantic import BaseModel
 
-from featuristic.llm import extract_features
+from featuristic.features.llm import extract_features
 
 
 @pytest.mark.asyncio
-@mock.patch('featuristic.llm.AzureChatOpenAI.with_structured_output')
+@mock.patch('featuristic.features.llm.AzureChatOpenAI.with_structured_output')
 async def test_extract_features(mock_with_structured_output):
     mock_with_structured_output.return_value = mock.Mock()
 

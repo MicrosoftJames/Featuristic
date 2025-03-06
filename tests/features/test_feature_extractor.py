@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 import pytest
-from featuristic.feature_extractor import FeatureExtractor
-from featuristic.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features.feature_extractor import FeatureExtractor
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 
 
 def test_dynamic_pydantic_model():
@@ -82,7 +82,7 @@ def test_extract_features():
 
 
 @pytest.mark.asyncio
-@patch('featuristic.feature_extractor.extract_features')
+@patch('featuristic.features.feature_extractor.extract_features')
 async def test_extract_prompt_features(mock_ainvoke):
 
     class Response(BaseModel):

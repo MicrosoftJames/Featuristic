@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from featuristic.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 
 
 def test_feature_definition():
