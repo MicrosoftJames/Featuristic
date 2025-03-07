@@ -6,11 +6,12 @@ from pydantic import BaseModel
 import pytest
 from featuristic.features.feature_extractor import FeatureExtractor
 from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.classification import Distribution
 
 
 def test_dynamic_pydantic_model():
     feature = PromptFeatureDefinition(name='simple feature', prompt='simple prompt',
-                                      feature_post_callback=None, llm_return_type=int)
+                                      feature_post_callback=None, llm_return_type=int, distribution=Distribution.MULTINOMIAL)
 
     group = PromptFeatureDefinitionGroup(
         features=[feature], preprocess_callback=None)
@@ -39,14 +40,14 @@ def test_featuristic_init():
     assert f._feature_definitions == []
 
     feature = PromptFeatureDefinition(name='simple feature', prompt='simple prompt',
-                                      feature_post_callback=None, llm_return_type=int)
+                                      feature_post_callback=None, llm_return_type=int, distribution=Distribution.MULTINOMIAL)
     group = PromptFeatureDefinitionGroup(
         features=[feature], preprocess_callback=None)
     f.add_feature_definition(group)
     assert f._feature_definitions == [group]
 
     feature = FeatureDefinition(
-        name='simple feature', preprocess_callback=lambda x: x)
+        name='simple feature', preprocess_callback=lambda x: x, distribution=Distribution.MULTINOMIAL)
     f.add_feature_definition(feature)
 
     assert len(f._feature_definitions) == 2
@@ -56,7 +57,8 @@ def test_featuristic_init():
 def test_preprocess_data():
     f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
-        name='simple feature', preprocess_callback=lambda x: x*2)
+        name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.MULTINOMIAL)
+
     f.add_feature_definition(feature)
 
     data = [1, 2, 3]
@@ -67,7 +69,7 @@ def test_preprocess_data():
 def test_extract_features():
     f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
-        name='simple feature', preprocess_callback=lambda x: x*2)
+        name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.GAUSSIAN)
     f.add_feature_definition(feature)
 
     data = [1, 2, 3]
@@ -91,7 +93,7 @@ async def test_extract_prompt_features(mock_ainvoke):
     mock_ainvoke.return_value = Response(animal_list=["cat", "dog"])
     f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = PromptFeatureDefinition(
-        name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x))
+        name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x), distribution=Distribution.MULTINOMIAL)
     group = PromptFeatureDefinitionGroup(
         features=[feature], preprocess_callback=None)
 

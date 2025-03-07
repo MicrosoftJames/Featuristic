@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 from typing import Callable, Optional, List
+from featuristic.classification import Distribution
 
 SYSTEM_MESSAGE = """You are helpful AI assistant that extracts machine learning features from text.
 You will be given a text input and your job is to extract features according to the JSON schema provided."""
 
 
 class PromptFeatureDefinition():
-    def __init__(self, name, prompt: str, llm_return_type: type = str, feature_post_callback: Optional[Callable] = None):
+    def __init__(self, name, prompt: str, distribution: Distribution, llm_return_type: type = str,  feature_post_callback: Optional[Callable] = None):
         """
         A custom prompt-based feature.
 
@@ -35,6 +36,7 @@ class PromptFeatureDefinition():
             ```
         """
         self.name = name
+        self.distribution = distribution
         self.feature_post_callback = feature_post_callback
         self.prompt = prompt
         self.llm_return_type = llm_return_type
@@ -74,3 +76,4 @@ class PromptFeatureDefinitionGroup(BaseFeatureDefinition):
 @dataclass
 class FeatureDefinition(BaseFeatureDefinition):
     name: str
+    distribution: Distribution

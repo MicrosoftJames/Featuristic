@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from featuristic.features.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.classification import Distribution
 
 
 def test_feature_definition():
     name = "number of sentences"
     feature = FeatureDefinition(name=name,
-                                preprocess_callback=lambda x: len(x.split('.')))
+                                preprocess_callback=lambda x: len(x.split('.')), distribution=Distribution.GAUSSIAN)
 
     assert feature.name == name
     assert feature.preprocess_callback(
@@ -21,7 +22,8 @@ def test_prompt_feature_definition():
         name=name,
         prompt=prompt,
         llm_return_type=bool,
-        feature_post_callback=None
+        feature_post_callback=None,
+        distribution=Distribution.BERNOULLI
     )
 
     assert feature.name == name
@@ -34,13 +36,15 @@ def test_prompt_feature_definition_group():
     mention_of_cats = PromptFeatureDefinition(
         name="mention of cats",
         prompt="Whether or not the notion of cats is mentioned",
-        llm_return_type=bool
+        llm_return_type=bool,
+        distribution=Distribution.BERNOULLI
     )
 
     mention_of_dogs = PromptFeatureDefinition(
         name="mention of dogs",
         prompt="Whether or not the notion of dogs is mentioned",
-        llm_return_type=bool
+        llm_return_type=bool,
+        distribution=Distribution.BERNOULLI
     )
 
     group = PromptFeatureDefinitionGroup(
@@ -65,13 +69,16 @@ def test_prompt_feature_definition_group_with_preprocess_callback():
     mention_of_cats = PromptFeatureDefinition(
         name="mention of cats",
         prompt="Whether or not the notion of cats is mentioned",
-        llm_return_type=bool
+        llm_return_type=bool,
+        distribution=Distribution.BERNOULLI
+
     )
 
     mention_of_dogs = PromptFeatureDefinition(
         name="mention of dogs",
         prompt="Whether or not the notion of dogs is mentioned",
-        llm_return_type=bool
+        llm_return_type=bool,
+        distribution=Distribution.BERNOULLI
     )
 
     group = PromptFeatureDefinitionGroup(
