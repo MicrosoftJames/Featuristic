@@ -1,14 +1,14 @@
 import numpy as np
 import pytest
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB
-from featuristic.classification.naive_bayes_classifier import NaiveBayesClassiferType, MixedTypeNaiveBayesClassifier
+from featuristic.classification import Distribution, MixedTypeNaiveBayesClassifier
 
 
 def test_add_classifier():
     mtc = MixedTypeNaiveBayesClassifier()
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(0, 2), {})
-    mtc.add_classifier(NaiveBayesClassiferType.BERNOULLI, slice(2, 4), {})
-    mtc.add_classifier(NaiveBayesClassiferType.GAUSSIAN, slice(4, 6), {})
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2), {})
+    mtc.add_classifier(Distribution.BERNOULLI, slice(2, 4), {})
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(4, 6), {})
     assert len(mtc._classifer_settings) == 3
     assert mtc._classifer_settings[0].nb_classifier.__class__ == MultinomialNB
     assert mtc._classifer_settings[1].nb_classifier.__class__ == BernoulliNB
@@ -38,8 +38,8 @@ def test_predict_proba(gaussian_data):
 
     mtc = MixedTypeNaiveBayesClassifier()
 
-    mtc.add_classifier(NaiveBayesClassiferType.GAUSSIAN, slice(0, 2))
-    mtc.add_classifier(NaiveBayesClassiferType.GAUSSIAN, slice(2, 4))
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(0, 2))
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(2, 4))
 
     mtc.fit(X_train, Y_train)
 
@@ -71,9 +71,9 @@ def test_predict_log_proba():
     mtc = MixedTypeNaiveBayesClassifier()
 
     # Laplace smoothing to prevent zero division error
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(
         0, 2), classifier_args={"alpha": 1e-30})
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(
         2, 4), classifier_args={"alpha": 1e-30})
 
     mtc.fit(np.hstack([X_a, X_b]), Y)
@@ -104,9 +104,9 @@ def test_predict_log_proba():
 
     mtc = MixedTypeNaiveBayesClassifier()
 
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(0, 2), classifier_args={
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2), classifier_args={
         "alpha": 0, "force_alpha": True})
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(2, 4), classifier_args={
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(2, 4), classifier_args={
         "alpha": 0, "force_alpha": True})
 
     mtc.fit(np.hstack([X_a, X_b]), Y)
@@ -131,9 +131,9 @@ def test_predict_log_proba():
 
     mtc = MixedTypeNaiveBayesClassifier()
 
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(0, 2), classifier_args={
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2), classifier_args={
         "alpha": 0, "force_alpha": True})
-    mtc.add_classifier(NaiveBayesClassiferType.BERNOULLI, slice(2, 3))
+    mtc.add_classifier(Distribution.BERNOULLI, slice(2, 3))
 
     mtc.fit(np.hstack([X_a, X_b]), Y)
 
@@ -166,8 +166,8 @@ def test_invalid_slices():
     mtc = MixedTypeNaiveBayesClassifier()
 
     # Overlapping slices
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(0, 2))
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(1, 3))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(1, 3))
 
     with pytest.raises(ValueError):
         mtc.fit(np.hstack([X_a, X_b]), Y)
@@ -175,8 +175,8 @@ def test_invalid_slices():
     mtc = MixedTypeNaiveBayesClassifier()
 
     # Slice exceeds number of columns
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(0, 2))
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(2, 5))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(2, 5))
 
     with pytest.raises(ValueError):
         mtc.fit(np.hstack([X_a, X_b]), Y)
@@ -184,8 +184,8 @@ def test_invalid_slices():
     mtc = MixedTypeNaiveBayesClassifier()
 
     # Slice does not start from 0
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(-1, 2))
-    mtc.add_classifier(NaiveBayesClassiferType.MULTINOMIAL, slice(3, 5))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(-1, 2))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(3, 5))
 
     with pytest.raises(ValueError):
         mtc.fit(np.hstack([X_a, X_b]), Y)

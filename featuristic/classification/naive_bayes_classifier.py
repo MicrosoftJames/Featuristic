@@ -7,7 +7,7 @@ from sklearn.naive_bayes import _BaseNB, BernoulliNB, GaussianNB, MultinomialNB
 from featuristic.classification.mixed_type_naive_bayes import predict, predict_proba, predict_log_proba
 
 
-class NaiveBayesClassiferType(Enum):
+class Distribution(Enum):
     MULTINOMIAL = 1
     BERNOULLI = 2
     GAUSSIAN = 3
@@ -24,14 +24,14 @@ class MixedTypeNaiveBayesClassifier():
     def __init__(self):
         self._classifer_settings: List[_NBClassifier] = []
 
-    def add_classifier(self, classifier: NaiveBayesClassiferType, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False):
-        if classifier == NaiveBayesClassiferType.MULTINOMIAL:
+    def add_classifier(self, classifier: Distribution, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False):
+        if classifier == Distribution.MULTINOMIAL:
             nb_classifier = MultinomialNB(**classifier_args)
 
-        elif classifier == NaiveBayesClassiferType.BERNOULLI:
+        elif classifier == Distribution.BERNOULLI:
             nb_classifier = BernoulliNB(**classifier_args)
 
-        elif classifier == NaiveBayesClassiferType.GAUSSIAN:
+        elif classifier == Distribution.GAUSSIAN:
             nb_classifier = GaussianNB(**classifier_args)
 
         self._classifer_settings.append(
