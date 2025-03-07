@@ -111,15 +111,11 @@ def test_prompt_feature():
     name = "number of sentences"
     value = 5
     llm_response = 5
-    prompt = "The number of sentences in the text"
     prompt_feature = PromptFeature(
         name=name,
         value=value,
-        llm_response=llm_response,
-        prompt=prompt,
-        llm_return_type=bool
+        llm_response=llm_response
     )
     assert prompt_feature.name == name
     assert prompt_feature.value == value
     assert prompt_feature.llm_response == llm_response
-    assert prompt_feature.prompt == prompt

@@ -42,10 +42,9 @@ class PromptFeatureDefinition():
         self.llm_return_type = llm_return_type
 
 
-class PromptFeature(PromptFeatureDefinition):
-    def __init__(self, name, prompt, value, llm_response, feature_post_callback: Optional[Callable] = None, llm_return_type=str):
-        super().__init__(name, prompt,
-                         feature_post_callback, llm_return_type)
+class PromptFeature():
+    def __init__(self, name, value, llm_response):
+        self.name = name
         self.value = value
         self.llm_response = llm_response
 

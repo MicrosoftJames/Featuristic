@@ -5,7 +5,7 @@ from unittest.mock import patch
 from pydantic import BaseModel
 import pytest
 from featuristic.features.feature_extractor import FeatureExtractor
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 from featuristic.classification import Distribution
 
 
@@ -85,12 +85,13 @@ def test_extract_features():
 
 @pytest.mark.asyncio
 @patch('featuristic.features.feature_extractor.extract_features')
-async def test_extract_prompt_features(mock_ainvoke):
+async def test_extract_prompt_features(mock_extract_features):
 
     class Response(BaseModel):
         animal_list: List[str]
 
-    mock_ainvoke.return_value = Response(animal_list=["cat", "dog"])
+    mock_extract_features.return_value = Response(animal_list=["cat", "dog"])
+
     f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = PromptFeatureDefinition(
         name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x), distribution=Distribution.MULTINOMIAL)
@@ -103,6 +104,65 @@ async def test_extract_prompt_features(mock_ainvoke):
     assert isinstance(extracted_features[0], List)
     assert extracted_features[0][0].name == 'animal_list'
     assert extracted_features[0][0].value == 2
+
+
+@patch('featuristic.features.feature_extractor.extract_features')
+def test_extract(mock_extract_features):
+
+    data = ["The cat and dog are friends.", "The cow is in the field."]
+
+    class Response(BaseModel):
+        animal_list: List[str]
+        contains_cow: bool
+
+    def _side_effect(*args, **kwargs):
+        string = args[0]
+        if string == data[0]:
+            return Response(animal_list=["cat", "dog"], contains_cow=False)
+
+        if string == data[1]:
+            return Response(animal_list=["cow"], contains_cow=True)
+
+    mock_extract_features.side_effect = _side_effect
+
+    animal_list = PromptFeatureDefinition(
+        name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x), distribution=Distribution.MULTINOMIAL)
+
+    contains_cow = PromptFeatureDefinition(
+        name='contains_cow', prompt='whether the text contains cow', llm_return_type=bool, feature_post_callback=None, distribution=Distribution.BERNOULLI)
+
+    group = PromptFeatureDefinitionGroup(
+        features=[animal_list, contains_cow], preprocess_callback=None)
+
+    char_count = FeatureDefinition(
+        name='char_count', preprocess_callback=lambda x: len(x), distribution=Distribution.GAUSSIAN)
+
+    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
+    f.add_feature_definition(group)
+    f.add_feature_definition(char_count)
+
+    features = asyncio.run(f.extract(data))
+
+    assert len(features) == 2
+    assert len(features[0]) == 3
+    assert len(features[1]) == 3
+
+    expected_features = [
+        [PromptFeature(name='animal_list', value=2, llm_response=['cat', 'dog']),
+         PromptFeature(name='contains_cow', value=False, llm_response=False),
+         Feature(name='char_count', value=28)],
+        [PromptFeature(name='animal_list', value=1, llm_response=['cow']),
+         PromptFeature(name='contains_cow', value=True, llm_response=True),
+         Feature(name='char_count', value=24)]
+    ]
+
+    for i in range(len(features)):
+        for j in range(len(features[i])):
+            assert features[i][j].name == expected_features[i][j].name
+            assert features[i][j].value == expected_features[i][j].value
+
+            if isinstance(features[i][j], PromptFeature):
+                assert features[i][j].llm_response == expected_features[i][j].llm_response
 
 
 def test_error_if_no_feature_definitions():

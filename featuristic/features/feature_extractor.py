@@ -78,13 +78,12 @@ class FeatureExtractor:
                     v, data_point) if feature.feature_post_callback else v
 
                 data_point_responses.append(
-                    PromptFeature(name=feature.name, value=v, llm_response=getattr(response, feature.name), prompt=feature.prompt, llm_return_type=feature.llm_return_type))
-
+                    PromptFeature(name=feature.name, value=v, llm_response=getattr(response, feature.name)))
             prompt_features.append(data_point_responses)
 
         return prompt_features
 
-    async def extract(self, data: List):
+    async def extract(self, data: List) -> List[List[Union[Feature, PromptFeature]]]:
         if len(self._feature_definitions) == 0:
             raise ValueError(
                 "No feature definitions have been added to the Featuristic object.")
@@ -95,11 +94,14 @@ class FeatureExtractor:
             if isinstance(feature_definition, PromptFeatureDefinitionGroup):
                 feature_group_responses = await self._extract_prompt_features(
                     data, feature_definition)
+                for i, feature_responses in enumerate(feature_group_responses):
+                    features[i].extend(feature_responses)
+
             else:
                 feature_group_responses = self._extract_features(
                     data, feature_definition)
 
-            for i, feature_responses in enumerate(feature_group_responses):
-                features[i].append(feature_responses)
+                for i, feature_responses in enumerate(feature_group_responses):
+                    features[i].append(feature_responses)
 
         return features
