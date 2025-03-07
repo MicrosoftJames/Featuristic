@@ -26,22 +26,16 @@ class MixedTypeNaiveBayesClassifier():
 
     def add_classifier(self, classifier: NaiveBayesClassiferType, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False):
         if classifier == NaiveBayesClassiferType.MULTINOMIAL:
-
             nb_classifier = MultinomialNB(**classifier_args)
-            self._classifer_settings.append(
-                _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))
 
         elif classifier == NaiveBayesClassiferType.BERNOULLI:
-
             nb_classifier = BernoulliNB(**classifier_args)
-            self._classifer_settings.append(
-                _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))
 
         elif classifier == NaiveBayesClassiferType.GAUSSIAN:
-
             nb_classifier = GaussianNB(**classifier_args)
-            self._classifer_settings.append(
-                _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))
+
+        self._classifer_settings.append(
+            _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))
 
     def _expand_proportions(self, col: np.ndarray) -> np.ndarray:
         """Turns a single column into two whereby the second column is one minus the first column."""
