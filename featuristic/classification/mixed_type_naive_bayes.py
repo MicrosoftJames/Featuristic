@@ -10,7 +10,7 @@ def predict_log_proba(bayesian_classifiers: List[_BaseNB], Xs: List[np.ndarray])
     log_class_priors = [bc.class_log_prior_ if hasattr(bc, "class_log_prior_") else np.log(
         bc.class_prior_)for bc in bayesian_classifiers]
 
-    if not all([np.array_equal(log_class_priors[0], log_class_priors[i]) for i in range(1, len(bayesian_classifiers))]):
+    if not all([np.allclose(log_class_priors[0], log_class_priors[i], atol=0.000001) for i in range(1, len(bayesian_classifiers))]):
         raise AttributeError("All classifiers must have the same priors")
 
     jlls = [bc._joint_log_likelihood(X)
