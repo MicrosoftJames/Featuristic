@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 from featuristic.classification import Distribution
 
 
@@ -99,23 +99,14 @@ def test_prompt_feature_definition_group_with_preprocess_callback():
         Data("This is a test!")) == "This is a test"
 
 
-def test_feature():
-    name = "number of sentences"
-    value = 5
-    feature = Feature(name=name, value=value)
-    assert feature.name == name
-    assert feature.value == value
-
-
 def test_prompt_feature():
     name = "number of sentences"
     value = 5
-    llm_response = 5
-    prompt_feature = PromptFeature(
+    prompt_feature = Feature(
         name=name,
-        value=value,
-        llm_response=llm_response
+        values=[value],
+        distribution=Distribution.GAUSSIAN
     )
     assert prompt_feature.name == name
-    assert prompt_feature.value == value
-    assert prompt_feature.llm_response == llm_response
+    assert prompt_feature.values == [5]
+    assert prompt_feature.distribution == Distribution.GAUSSIAN

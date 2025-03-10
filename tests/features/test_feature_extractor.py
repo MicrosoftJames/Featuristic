@@ -5,7 +5,7 @@ from unittest.mock import patch
 from pydantic import BaseModel
 import pytest
 from featuristic.features.feature_extractor import FeatureExtractor
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeature, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
 from featuristic.classification import Distribution
 
 
@@ -66,21 +66,18 @@ def test_preprocess_data():
     assert preprocessed_data == [2, 4, 6]
 
 
-def test_extract_features():
+def test_extract_feature():
     f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.GAUSSIAN)
     f.add_feature_definition(feature)
 
     data = [1, 2, 3]
-    extracted_features = f._extract_features(data, feature)
-    assert len(extracted_features) == 3
-    assert all(isinstance(f, Feature)
-               for f in extracted_features)
-    assert extracted_features[0].name == 'simple feature'
-    assert extracted_features[0].value == 2
-    assert extracted_features[1].value == 4
-    assert extracted_features[2].value == 6
+    extracted_feature = f._extract_feature(data, feature)
+    assert len(extracted_feature.values) == 3
+    assert isinstance(extracted_feature, Feature)
+    assert extracted_feature.name == 'simple feature'
+    assert extracted_feature.values == [2, 4, 6]
 
 
 @pytest.mark.asyncio
@@ -100,10 +97,10 @@ async def test_extract_prompt_features(mock_extract_features):
 
     data = ["The cat and dog are friends."]
     extracted_features = await f._extract_prompt_features(data, group)
-    assert len(extracted_features) == 1
-    assert isinstance(extracted_features[0], List)
-    assert extracted_features[0][0].name == 'animal_list'
-    assert extracted_features[0][0].value == 2
+    assert len(extracted_features) == 1  # one feature
+    assert isinstance(extracted_features, List)
+    assert extracted_features[0].name == 'animal_list'
+    assert extracted_features[0].values == [2]
 
 
 @patch('featuristic.features.feature_extractor.extract_features')
@@ -143,26 +140,24 @@ def test_extract(mock_extract_features):
 
     features = asyncio.run(f.extract(data))
 
-    assert len(features) == 2
-    assert len(features[0]) == 3
-    assert len(features[1]) == 3
+    assert len(features) == 3
+    assert len(features[0].values) == 2
+    assert len(features[1].values) == 2
+    assert len(features[2].values) == 2
 
     expected_features = [
-        [PromptFeature(name='animal_list', value=2, llm_response=['cat', 'dog']),
-         PromptFeature(name='contains_cow', value=False, llm_response=False),
-         Feature(name='char_count', value=28)],
-        [PromptFeature(name='animal_list', value=1, llm_response=['cow']),
-         PromptFeature(name='contains_cow', value=True, llm_response=True),
-         Feature(name='char_count', value=24)]
+        Feature(name='animal_list', values=[
+                2, 1], distribution=Distribution.MULTINOMIAL),
+        Feature(name='contains_cow', values=[
+                False, True], distribution=Distribution.BERNOULLI),
+        Feature(name='char_count', values=[
+                28, 24], distribution=Distribution.GAUSSIAN)
     ]
 
-    for i in range(len(features)):
-        for j in range(len(features[i])):
-            assert features[i][j].name == expected_features[i][j].name
-            assert features[i][j].value == expected_features[i][j].value
+    assert len(features) == len(expected_features)
 
-            if isinstance(features[i][j], PromptFeature):
-                assert features[i][j].llm_response == expected_features[i][j].llm_response
+    for i in range(len(features)):
+        assert features[i].values == expected_features[i].values
 
 
 def test_error_if_no_feature_definitions():

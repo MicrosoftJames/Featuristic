@@ -1,64 +1,52 @@
 from dataclasses import dataclass
-from typing import Callable, Optional, List
+from typing import Callable, Optional, List, Union
 from featuristic.classification import Distribution
 
 SYSTEM_MESSAGE = """You are helpful AI assistant that extracts machine learning features from text.
 You will be given a text input and your job is to extract features according to the JSON schema provided."""
 
 
+@dataclass
 class PromptFeatureDefinition():
-    def __init__(self, name, prompt: str, distribution: Distribution, llm_return_type: type = str,  feature_post_callback: Optional[Callable] = None):
-        """
-        A custom prompt-based feature.
+    """
+    A custom prompt-based feature.
 
-        Args:
-            name (str): The name of the feature.
-            prompt (str): The prompt to be used to extract the feature.
-            llm_return_type (type, optional): The return type of the feature. Defaults to str.
-            feature_post_callback (Optional[Callable], optional): A post-processing function to apply to the feature. Defaults to None.
-                The post-processing function will be called with the feature value and the original data object.
+    Args:
+        name (str): The name of the feature.
+        prompt (str): The prompt to be used to extract the feature.
+        llm_return_type (type, optional): The return type of the feature. Defaults to str.
+        feature_post_callback (Optional[Callable], optional): A post-processing function to apply to the feature. Defaults to None.
+            The post-processing function will be called with the feature value and the original data object.
 
-        Example for feature_post_callback:
-            ```python
-            >>> @dataclass
-            ... class MyData:
-            ...     text: str
+    Example for feature_post_callback:
+        ```python
+        >>> @dataclass
+        ... class MyData:
+        ...     text: str
 
-            >>> def feature_post_callback(x, my_data: MyData):
-            ...     return x.upper()
+        >>> def feature_post_callback(x, my_data: MyData):
+        ...     return x.upper()
 
-            >>> feature = Feature(
-            ...     name="sentiment",
-            ...     prompt="What is the sentiment of this text?",
-            ...     llm_return_type=str,
-            ...     feature_post_callback=feature_post_callback
-            ... )
-            ```
-        """
-        self.name = name
-        self.distribution = distribution
-        self.feature_post_callback = feature_post_callback
-        self.prompt = prompt
-        self.llm_return_type = llm_return_type
-
-
-class PromptFeature():
-    def __init__(self, name, value, llm_response):
-        self.name = name
-        self.value = value
-        self.llm_response = llm_response
-
-    def __repr__(self):
-        return f"PromptFeature(name='{self.name}', value={repr(self.value)})"
+        >>> feature = Feature(
+        ...     name="sentiment",
+        ...     prompt="What is the sentiment of this text?",
+        ...     llm_return_type=str,
+        ...     feature_post_callback=feature_post_callback
+        ... )
+        ```
+    """
+    name: str
+    prompt: str
+    distribution: Distribution
+    llm_return_type: type = str
+    feature_post_callback: Optional[Callable] = None
 
 
+@dataclass
 class Feature():
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
-
-    def __repr__(self):
-        return f"Feature(name='{self.name}', value={repr(self.value)})"
+    name: str
+    values: List[Union[int, float]]
+    distribution: Distribution
 
 
 @dataclass
