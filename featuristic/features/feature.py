@@ -6,8 +6,30 @@ SYSTEM_MESSAGE = """You are helpful AI assistant that extracts machine learning 
 You will be given a text input and your job is to extract features according to the JSON schema provided."""
 
 
+@dataclass(frozen=True)
+class PromptFeatureConfiguration:
+    aoai_api_key: str = None
+    aoai_api_endpoint: str = None
+    gpt4o_deployment: str = "gpt-4o"
+    preprocess_callback: Optional[Callable] = None
+    system_prompt: Optional[str] = SYSTEM_MESSAGE
+
+    def __eq__(self, other):
+        return self is other
+
+    def __hash__(self):
+        return id(self)
+
+
 @dataclass
-class PromptFeatureDefinition():
+class FeatureDefinition:
+    preprocess_callback: Optional[Callable]
+    name: str
+    distribution: Distribution
+
+
+@dataclass
+class PromptFeatureDefinition:
     """
     A custom prompt-based feature.
 
@@ -38,29 +60,13 @@ class PromptFeatureDefinition():
     name: str
     prompt: str
     distribution: Distribution
+    config: PromptFeatureConfiguration
     llm_return_type: type = str
     feature_post_callback: Optional[Callable] = None
 
 
 @dataclass
-class Feature():
+class Feature:
     name: str
     values: List[Union[int, float]]
-    distribution: Distribution
-
-
-@dataclass
-class BaseFeatureDefinition():
-    preprocess_callback: Optional[Callable]
-
-
-@dataclass
-class PromptFeatureDefinitionGroup(BaseFeatureDefinition):
-    features: List[PromptFeatureDefinition]
-    system_prompt: Optional[str] = SYSTEM_MESSAGE
-
-
-@dataclass
-class FeatureDefinition(BaseFeatureDefinition):
-    name: str
     distribution: Distribution

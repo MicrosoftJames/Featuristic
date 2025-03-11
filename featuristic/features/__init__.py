@@ -1,5 +1,5 @@
-from .feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
-from .feature_extractor import FeatureExtractor
+from .feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
+from .feature_extractor import extract_features
 
-__all__ = ["FeatureExtractor", "FeatureDefinition",
-           "PromptFeatureDefinition", "PromptFeatureDefinitionGroup"]
+__all__ = ["extract_features", "FeatureDefinition",
+           "PromptFeatureDefinition", "PromptFeatureConfiguration"]

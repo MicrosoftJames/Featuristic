@@ -4,24 +4,17 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 import pytest
-from featuristic.features.feature_extractor import FeatureExtractor
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic.features import feature_extractor
+from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.classification import Distribution
 
 
 def test_dynamic_pydantic_model():
     feature = PromptFeatureDefinition(name='simple feature', prompt='simple prompt',
-                                      feature_post_callback=None, llm_return_type=int, distribution=Distribution.MULTINOMIAL)
+                                      feature_post_callback=None, llm_return_type=int, distribution=Distribution.MULTINOMIAL, config=None)
 
-    group = PromptFeatureDefinitionGroup(
-        features=[feature], preprocess_callback=None)
-
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
-    f.add_feature_definition(group)
-
-    assert f._feature_definitions == [group]
-
-    dynamic_pydantic_model = f._get_dynamic_pydantic_model(group)
+    dynamic_pydantic_model = feature_extractor._get_dynamic_pydantic_model(
+        [feature])
 
     assert dynamic_pydantic_model.model_json_schema(
     )['properties'].keys() == {'simple feature'}
@@ -31,49 +24,22 @@ def test_dynamic_pydantic_model():
     )['properties']['simple feature']['type'] == 'integer'
     assert dynamic_pydantic_model.__name__ == 'FeaturesSchema'
 
-    assert isinstance(f._feature_definitions[0], PromptFeatureDefinitionGroup)
-    assert f._feature_definitions[0].features[0].name == 'simple feature'
-
-
-def test_featuristic_init():
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
-    assert f._feature_definitions == []
-
-    feature = PromptFeatureDefinition(name='simple feature', prompt='simple prompt',
-                                      feature_post_callback=None, llm_return_type=int, distribution=Distribution.MULTINOMIAL)
-    group = PromptFeatureDefinitionGroup(
-        features=[feature], preprocess_callback=None)
-    f.add_feature_definition(group)
-    assert f._feature_definitions == [group]
-
-    feature = FeatureDefinition(
-        name='simple feature', preprocess_callback=lambda x: x, distribution=Distribution.MULTINOMIAL)
-    f.add_feature_definition(feature)
-
-    assert len(f._feature_definitions) == 2
-    assert f._feature_definitions == [group, feature]
-
 
 def test_preprocess_data():
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.MULTINOMIAL)
 
-    f.add_feature_definition(feature)
-
     data = [1, 2, 3]
-    preprocessed_data = f._preprocess_data(data, feature)
+    preprocessed_data = feature_extractor._preprocess_data(data, feature)
     assert preprocessed_data == [2, 4, 6]
 
 
 def test_extract_feature():
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.GAUSSIAN)
-    f.add_feature_definition(feature)
 
     data = [1, 2, 3]
-    extracted_feature = f._extract_feature(data, feature)
+    extracted_feature = feature_extractor._extract_feature(data, feature)
     assert len(extracted_feature.values) == 3
     assert isinstance(extracted_feature, Feature)
     assert extracted_feature.name == 'simple feature'
@@ -81,30 +47,34 @@ def test_extract_feature():
 
 
 @pytest.mark.asyncio
-@patch('featuristic.features.feature_extractor.extract_features')
-async def test_extract_prompt_features(mock_extract_features):
+@patch('featuristic.features.feature_extractor.extract_features_with_llm')
+async def test_extract_prompt_features(mock_extract_features_with_llm):
 
     class Response(BaseModel):
         animal_list: List[str]
 
-    mock_extract_features.return_value = Response(animal_list=["cat", "dog"])
+    mock_extract_features_with_llm.return_value = Response(animal_list=[
+                                                           "cat", "dog"])
 
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
+    config = PromptFeatureConfiguration(
+        aoai_api_endpoint="https://example.com",
+        aoai_api_key="example",
+        preprocess_callback=None)
     feature = PromptFeatureDefinition(
-        name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x), distribution=Distribution.MULTINOMIAL)
-    group = PromptFeatureDefinitionGroup(
-        features=[feature], preprocess_callback=None)
+        name='animal_list', prompt='extract a list of animals',
+        llm_return_type=List[str], feature_post_callback=lambda x, _: len(x),
+        distribution=Distribution.MULTINOMIAL, config=config)
 
     data = ["The cat and dog are friends."]
-    extracted_features = await f._extract_prompt_features(data, group)
+    extracted_features = await feature_extractor._extract_prompt_features(data, [feature], config)
     assert len(extracted_features) == 1  # one feature
     assert isinstance(extracted_features, List)
     assert extracted_features[0].name == 'animal_list'
     assert extracted_features[0].values == [2]
 
 
-@patch('featuristic.features.feature_extractor.extract_features')
-def test_extract(mock_extract_features):
+@patch('featuristic.features.feature_extractor.extract_features_with_llm')
+def test_extract_features(mock_extract_features_with_llm):
 
     data = ["The cat and dog are friends.", "The cow is in the field."]
 
@@ -120,26 +90,35 @@ def test_extract(mock_extract_features):
         if string == data[1]:
             return Response(animal_list=["cow"], contains_cow=True)
 
-    mock_extract_features.side_effect = _side_effect
+    mock_extract_features_with_llm.side_effect = _side_effect
 
+    config = PromptFeatureConfiguration(
+        aoai_api_endpoint="https://example.com",
+        aoai_api_key="example",
+        preprocess_callback=None)
     animal_list = PromptFeatureDefinition(
-        name='animal_list', prompt='extract a list of animals', llm_return_type=List[str], feature_post_callback=lambda x, _: len(x), distribution=Distribution.MULTINOMIAL)
+        name='animal_list',
+        prompt='extract a list of animals',
+        llm_return_type=List[str],
+        feature_post_callback=lambda x, _: len(x),
+        distribution=Distribution.MULTINOMIAL,
+        config=config)
 
     contains_cow = PromptFeatureDefinition(
-        name='contains_cow', prompt='whether the text contains cow', llm_return_type=bool, feature_post_callback=None, distribution=Distribution.BERNOULLI)
-
-    group = PromptFeatureDefinitionGroup(
-        features=[animal_list, contains_cow], preprocess_callback=None)
+        name='contains_cow',
+        prompt='whether the text contains cow',
+        llm_return_type=bool,
+        feature_post_callback=None,
+        distribution=Distribution.BERNOULLI,
+        config=config)
 
     char_count = FeatureDefinition(
         name='char_count', preprocess_callback=lambda x: len(x), distribution=Distribution.GAUSSIAN)
 
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
-    f.add_feature_definition(group)
-    f.add_feature_definition(char_count)
+    features = asyncio.run(feature_extractor.extract_features(data,
+                                                              feature_definitions=[animal_list, contains_cow, char_count]))
 
-    features = asyncio.run(f.extract(data))
-
+    assert isinstance(features, List)
     assert len(features) == 3
     assert len(features[0].values) == 2
     assert len(features[1].values) == 2
@@ -147,11 +126,11 @@ def test_extract(mock_extract_features):
 
     expected_features = [
         Feature(name='animal_list', values=[
-                2, 1], distribution=Distribution.MULTINOMIAL),
+            2, 1], distribution=Distribution.MULTINOMIAL),
         Feature(name='contains_cow', values=[
-                False, True], distribution=Distribution.BERNOULLI),
+            False, True], distribution=Distribution.BERNOULLI),
         Feature(name='char_count', values=[
-                28, 24], distribution=Distribution.GAUSSIAN)
+            28, 24], distribution=Distribution.GAUSSIAN)
     ]
 
     assert len(features) == len(expected_features)
@@ -161,6 +140,59 @@ def test_extract(mock_extract_features):
 
 
 def test_error_if_no_feature_definitions():
-    f = FeatureExtractor(aoai_api_endpoint="test", aoai_api_key="test")
     with pytest.raises(ValueError):
-        asyncio.run(f.extract([1, 2, 3]))
+        asyncio.run(feature_extractor.extract_features([1, 2, 3], []))
+
+
+def test_get_unique_prompt_feature_configs():
+    config1 = PromptFeatureConfiguration(
+        aoai_api_key="example1", aoai_api_endpoint="https://example1.com")
+    config2 = PromptFeatureConfiguration(
+        aoai_api_key="example2",
+        aoai_api_endpoint="https://example2.com")
+
+    feature_definitions = [
+        PromptFeatureDefinition(name='feature1', prompt='prompt1',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config1),
+        PromptFeatureDefinition(name='feature2', prompt='prompt2',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config2),
+        PromptFeatureDefinition(name='feature3', prompt='prompt3',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config1),
+    ]
+
+    unique_configs = feature_extractor._get_unique_prompt_feature_configs(
+        feature_definitions)
+
+    assert len(unique_configs) == 2
+    assert config1 in unique_configs
+    assert config2 in unique_configs
+
+
+def test_get_prompt_feature_definitions_with_config():
+    config1 = PromptFeatureConfiguration(
+        aoai_api_key="example1", aoai_api_endpoint="https://example1.com")
+    config2 = PromptFeatureConfiguration(
+        aoai_api_key="example2",
+        aoai_api_endpoint="https://example2.com")
+
+    feature_definitions = [
+        PromptFeatureDefinition(name='feature1', prompt='prompt1',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config1),
+        PromptFeatureDefinition(name='feature2', prompt='prompt2',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config2),
+        PromptFeatureDefinition(name='feature3', prompt='prompt3',
+                                llm_return_type=str, distribution=Distribution.MULTINOMIAL, config=config1),
+    ]
+
+    results = feature_extractor._get_prompt_feature_definitions_with_config(
+        feature_definitions, config1)
+
+    assert len(results) == 2
+    assert results[0] == feature_definitions[0]
+    assert results[1] == feature_definitions[2]
+
+    results = feature_extractor._get_prompt_feature_definitions_with_config(
+        feature_definitions, config2)
+
+    assert len(results) == 1
+    assert results[0] == feature_definitions[1]
