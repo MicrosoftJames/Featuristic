@@ -5,12 +5,12 @@ import pytest
 
 from pydantic import BaseModel
 
-from featuristic.llm import extract_features
+from featuristic.features.llm import extract_features_with_llm
 
 
 @pytest.mark.asyncio
-@mock.patch('featuristic.llm.AzureChatOpenAI.with_structured_output')
-async def test_extract_features(mock_with_structured_output):
+@mock.patch('featuristic.features.llm.AzureChatOpenAI.with_structured_output')
+async def test_extract_features_with_llm(mock_with_structured_output):
     mock_with_structured_output.return_value = mock.Mock()
 
     class Response(BaseModel):
@@ -31,5 +31,5 @@ async def test_extract_features(mock_with_structured_output):
         animal_list: List[str]
 
     schema = FeaturesSchema
-    result = await extract_features(data, schema, system_prompt, aoai_api_key, aoai_api_endpoint)
+    result = await extract_features_with_llm(data, schema, system_prompt, aoai_api_key, aoai_api_endpoint)
     assert result.animal_list == ["cat", "dog"]
