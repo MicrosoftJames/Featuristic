@@ -49,6 +49,54 @@ def test_predict_proba(gaussian_data):
     assert combined_gnb_log_proba.shape == single_gnb_log_proba.shape
     assert np.allclose(single_gnb_log_proba, combined_gnb_log_proba)
 
+    mtc = MixedTypeNaiveBayesClassifier()
+
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(0, 2), classifier_args={
+        "priors": np.array([0.5, 0.5])})
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(2, 4), classifier_args={
+        "priors": np.array([0.4, 0.6])})
+
+    mtc.fit(X_train, Y_train)
+
+    with pytest.raises(AttributeError):
+        mtc.predict_log_proba(X_test)
+
+
+def test_predict(gaussian_data):
+    X_train, Y_train, X_test, Y_test = gaussian_data
+
+    gnb = GaussianNB()
+    gnb.fit(X_train, Y_train)
+
+    mtc = MixedTypeNaiveBayesClassifier()
+
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(0, 2))
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(2, 4))
+
+    mtc.fit(X_train, Y_train)
+
+    single_gnb_predict = gnb.predict(X_test)
+    combined_gnb_predict = mtc.predict(X_test)
+    assert combined_gnb_predict.shape == single_gnb_predict.shape
+
+
+def test_with_expanded_proportions():
+    X_a = np.array([
+        [0.4, 0.1],
+        [0.2, 0.4]])
+
+    X_b = np.array([
+        [0.1, 0.5],
+        [0.3, 0.1]])
+    Y = np.array([0, 1])
+
+    mtc = MixedTypeNaiveBayesClassifier()
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2), classifier_args={
+        "alpha": 0, "force_alpha": True}, expand_multinomial_col=True)
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(2, 4), classifier_args={
+        "alpha": 0, "force_alpha": True}, expand_multinomial_col=True)
+    mtc.fit(np.hstack([X_a, X_b]), Y)
+
 
 def test_predict_log_proba():
     X_a = np.array([
@@ -189,3 +237,22 @@ def test_invalid_slices():
 
     with pytest.raises(ValueError):
         mtc.fit(np.hstack([X_a, X_b]), Y)
+
+
+def test_validate_slices():
+    X_a = np.array([
+        [1, 2],
+        [0, 1],
+        [0, 2],
+        [0, 1]])
+
+    Y = np.array([0])
+
+    mtc = MixedTypeNaiveBayesClassifier()
+
+    # Valid slices
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(1, 2))
+    mtc.add_classifier(Distribution.MULTINOMIAL, slice(2, 3))
+
+    with pytest.raises(ValueError):
+        mtc.fit(X_a, Y)
