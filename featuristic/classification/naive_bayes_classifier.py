@@ -65,14 +65,14 @@ class MixedTypeNaiveBayesClassifier():
                 X_slice = self._expand_proportions(X_slice)
             classifer_settings.nb_classifier.fit(X_slice, Y)
 
-    def predict(self, X):
+    def predict(self, X) -> np.ndarray:
         return predict([cs.nb_classifier for cs in self._classifier_settings],
                        [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         return predict_proba([cs.nb_classifier for cs in self._classifier_settings],
                              [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])
 
-    def predict_log_proba(self, X):
+    def predict_log_proba(self, X) -> np.ndarray:
         return predict_log_proba([cs.nb_classifier for cs in self._classifier_settings],
                                  [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])

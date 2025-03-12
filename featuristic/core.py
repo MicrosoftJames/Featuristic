@@ -47,3 +47,28 @@ class FeaturisticClassifier:
         self._validate_features(features)
         X = self._convert_features_to_array(features)
         return self._classifier.predict(X)
+
+    def calculate_entropy(self, features: List[Feature]):
+        self._validate_features(features)
+        X = self._convert_features_to_array(features)
+
+        proba = self._classifier.predict_proba(X)
+        log_proba = self._classifier.predict_log_proba(X)
+        return - np.sum(proba * log_proba, axis=1)
+
+    def rank_features_by_uncertainty(self, features: List[Feature]):
+        """Ranks features based on the uncertainty of their class predictions.
+        This is done by calculating the entropy of the predicted probabilities
+        for each feature and returning the indices of the features sorted by
+        decreasing entropy.
+
+        Args:
+            features (List[Feature]): List of features to rank.
+
+        Returns:
+            numpy array (shape=(n_features,)): Array of feature indices sorted by increasing certainty (decreasing entropy).
+        """
+        self._validate_features(features)
+        entropies = self.calculate_entropy(features)
+        # Sort by decreasing entropy
+        return np.argsort(entropies)[::-1]
