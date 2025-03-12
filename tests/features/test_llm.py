@@ -5,7 +5,7 @@ import pytest
 
 from pydantic import BaseModel
 
-from featuristic.features.llm import extract_features_with_llm
+from featuristic.features.llm import _extract_features_with_llm
 
 
 @pytest.mark.asyncio
@@ -31,5 +31,5 @@ async def test_extract_features_with_llm(mock_with_structured_output):
         animal_list: List[str]
 
     schema = FeaturesSchema
-    result = await extract_features_with_llm(data, schema, system_prompt, aoai_api_key, aoai_api_endpoint)
+    result = await _extract_features_with_llm(data, schema, system_prompt, aoai_api_key, aoai_api_endpoint)
     assert result.animal_list == ["cat", "dog"]

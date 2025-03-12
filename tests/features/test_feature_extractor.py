@@ -47,7 +47,7 @@ def test_extract_feature():
 
 
 @pytest.mark.asyncio
-@patch('featuristic.features.feature_extractor.extract_features_with_llm')
+@patch('featuristic.features.feature_extractor._extract_features_with_llm')
 async def test_extract_prompt_features(mock_extract_features_with_llm):
 
     class Response(BaseModel):
@@ -73,7 +73,7 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
     assert extracted_features[0].values == [2]
 
 
-@patch('featuristic.features.feature_extractor.extract_features_with_llm')
+@patch('featuristic.features.feature_extractor._extract_features_with_llm')
 def test_extract_features(mock_extract_features_with_llm):
 
     data = ["The cat and dog are friends.", "The cow is in the field."]

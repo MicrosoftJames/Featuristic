@@ -5,7 +5,7 @@ from typing import List, Union
 from pydantic import BaseModel, Field, create_model
 
 from featuristic.features.feature import Feature, FeatureDefinition, Feature, PromptFeatureDefinition, PromptFeatureConfiguration
-from featuristic.features.llm import extract_features_with_llm
+from featuristic.features.llm import _extract_features_with_llm
 
 
 def _get_dynamic_pydantic_model(prompt_feature_definitions: List[PromptFeatureDefinition]):
@@ -28,8 +28,8 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
         tasks = []
         for text in texts[i * batch_size: (i + 1) * batch_size]:
             task = asyncio.create_task(
-                extract_features_with_llm(text, schema, config.system_prompt,
-                                          config.aoai_api_key, config.aoai_api_endpoint, config.gpt4o_deployment))
+                _extract_features_with_llm(text, schema, config.system_prompt,
+                                           config.aoai_api_key, config.aoai_api_endpoint, config.gpt4o_deployment))
             tasks.append(task)
         results.extend(await asyncio.gather(*tasks))
 
