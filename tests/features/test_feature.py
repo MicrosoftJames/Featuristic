@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from featuristic.features.feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.classification import Distribution
+import pytest
 
 
 def test_feature_definition():
@@ -61,3 +62,41 @@ def test_prompt_feature_definition_group_with_preprocess_callback():
     assert config.preprocess_callback is not None
     assert config.preprocess_callback(
         Data("This is a test!")) == "This is a test"
+
+
+def test_prompt_feature_configuration_post_init():
+    """Test the post-init validation of PromptFeatureConfiguration."""
+
+    # Test that a valid configuration is accepted
+    config = PromptFeatureConfiguration(
+        aoai_api_key="test-key",
+        aoai_api_endpoint="https://test-endpoint.com",
+        gpt4o_deployment="test-deployment"
+    )
+    assert config.aoai_api_key == "test-key"
+    assert config.aoai_api_endpoint == "https://test-endpoint.com"
+    assert config.gpt4o_deployment == "test-deployment"
+
+    # Test that missing API key raises ValueError
+    with pytest.raises(ValueError, match="AOAI_API_KEY is not set"):
+        PromptFeatureConfiguration(
+            aoai_api_key="",
+            aoai_api_endpoint="https://test-endpoint.com",
+            gpt4o_deployment="test-deployment"
+        )
+
+    # Test that missing API endpoint raises ValueError
+    with pytest.raises(ValueError, match="AOAI_API_ENDPOINT is not set"):
+        PromptFeatureConfiguration(
+            aoai_api_key="test-key",
+            aoai_api_endpoint="",
+            gpt4o_deployment="test-deployment"
+        )
+
+    # Test that missing deployment raises ValueError
+    with pytest.raises(ValueError, match="GPT4O_DEPLOYMENT is not set"):
+        PromptFeatureConfiguration(
+            aoai_api_key="test-key",
+            aoai_api_endpoint="https://test-endpoint.com",
+            gpt4o_deployment=""
+        )
