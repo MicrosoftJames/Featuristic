@@ -26,7 +26,16 @@ class FeaturisticClassifier:
         """
         return np.array([f.values for f in features]).T
 
+    @staticmethod
+    def _validate_features(features):
+        if not features:
+            raise ValueError("No features provided.")
+
+        if not all(isinstance(f, Feature) for f in features):
+            raise ValueError("All items in features must be of type Feature.")
+
     def fit(self, features: List[Feature], Y):
+        self._validate_features(features)
         X = self._convert_features_to_array(features)
 
         if not len(X) == len(Y):
@@ -35,5 +44,6 @@ class FeaturisticClassifier:
         self._classifier.fit(X, Y)
 
     def predict(self, features: List[Feature]):
+        self._validate_features(features)
         X = self._convert_features_to_array(features)
         return self._classifier.predict(X)

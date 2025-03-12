@@ -68,3 +68,29 @@ def test_invalid_fit():
     # Fit the classifier and expect a ValueError
     with pytest.raises(ValueError):
         classifier.fit(train_features, Y)
+
+
+def test_validate_features():
+    # Valid features should not raise an exception
+    valid_features = [
+        Feature(name="feature1", values=[1.0, 2.0]),
+        Feature(name="feature2", values=[3.0, 4.0])
+    ]
+    FeaturisticClassifier._validate_features(
+        valid_features)  # Should not raise
+
+    # Test empty features list
+    with pytest.raises(ValueError, match="No features provided."):
+        FeaturisticClassifier._validate_features([])
+
+    # Test non-Feature objects
+    invalid_features = [
+        Feature(name="feature1", values=[1.0, 2.0]),
+        "not a feature"  # This is a string, not a Feature
+    ]
+    with pytest.raises(ValueError, match="All items in features must be of type Feature."):
+        FeaturisticClassifier._validate_features(invalid_features)
+
+    # Test None
+    with pytest.raises(ValueError, match="No features provided."):
+        FeaturisticClassifier._validate_features(None)
