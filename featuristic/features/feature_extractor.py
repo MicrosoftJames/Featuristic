@@ -46,9 +46,7 @@ def _extract_feature(data: List, feature_definition: FeatureDefinition) -> Featu
 
     return Feature(
         name=feature_definition.name,
-        values=preprocessed_data_points,
-        distribution=feature_definition.distribution
-    )
+        values=preprocessed_data_points)
 
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
@@ -69,7 +67,7 @@ async def _extract_prompt_features(data: List, prompt_feature_definitions: Promp
                 v, data_point) if definition.feature_post_callback else v
             values.append(v)
         features.append(
-            Feature(definition.name, values, definition.distribution))
+            Feature(definition.name, values))
 
     return features
 

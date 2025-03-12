@@ -69,4 +69,3 @@ class PromptFeatureDefinition:
 class Feature:
     name: str
     values: List[Union[int, float]]
-    distribution: Distribution

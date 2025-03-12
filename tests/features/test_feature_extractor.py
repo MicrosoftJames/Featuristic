@@ -125,12 +125,9 @@ def test_extract_features(mock_extract_features_with_llm):
     assert len(features[2].values) == 2
 
     expected_features = [
-        Feature(name='animal_list', values=[
-            2, 1], distribution=Distribution.MULTINOMIAL),
-        Feature(name='contains_cow', values=[
-            False, True], distribution=Distribution.BERNOULLI),
-        Feature(name='char_count', values=[
-            28, 24], distribution=Distribution.GAUSSIAN)
+        Feature(name='animal_list', values=[2, 1]),
+        Feature(name='contains_cow', values=[False, True]),
+        Feature(name='char_count', values=[28, 24])
     ]
 
     assert len(features) == len(expected_features)
