@@ -5,7 +5,7 @@ from typing import List, Union
 from pydantic import BaseModel, Field, create_model
 
 from featuristic.features.feature import Feature, FeatureDefinition, Feature, PromptFeatureDefinition, PromptFeatureConfiguration
-from featuristic.features.llm import extract_features_with_llm
+from featuristic.features.llm import _extract_features_with_llm
 
 
 def _get_dynamic_pydantic_model(prompt_feature_definitions: List[PromptFeatureDefinition]):
@@ -28,8 +28,8 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
         tasks = []
         for text in texts[i * batch_size: (i + 1) * batch_size]:
             task = asyncio.create_task(
-                extract_features_with_llm(text, schema, config.system_prompt,
-                                          config.aoai_api_key, config.aoai_api_endpoint, config.gpt4o_deployment))
+                _extract_features_with_llm(text, schema, config.system_prompt,
+                                           config.aoai_api_key, config.aoai_api_endpoint, config.gpt4o_deployment))
             tasks.append(task)
         results.extend(await asyncio.gather(*tasks))
 
@@ -46,9 +46,7 @@ def _extract_feature(data: List, feature_definition: FeatureDefinition) -> Featu
 
     return Feature(
         name=feature_definition.name,
-        values=preprocessed_data_points,
-        distribution=feature_definition.distribution
-    )
+        values=preprocessed_data_points)
 
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
@@ -69,7 +67,7 @@ async def _extract_prompt_features(data: List, prompt_feature_definitions: Promp
                 v, data_point) if definition.feature_post_callback else v
             values.append(v)
         features.append(
-            Feature(definition.name, values, definition.distribution))
+            Feature(definition.name, values))
 
     return features
 

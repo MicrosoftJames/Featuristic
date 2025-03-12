@@ -69,8 +69,6 @@ def test_feature():
     prompt_feature = Feature(
         name=name,
         values=[value],
-        distribution=Distribution.GAUSSIAN
     )
     assert prompt_feature.name == name
     assert prompt_feature.values == [5]
-    assert prompt_feature.distribution == Distribution.GAUSSIAN

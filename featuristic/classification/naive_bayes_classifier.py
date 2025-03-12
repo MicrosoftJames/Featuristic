@@ -22,7 +22,7 @@ class _NBClassifier():
 
 class MixedTypeNaiveBayesClassifier():
     def __init__(self):
-        self._classifer_settings: List[_NBClassifier] = []
+        self._classifier_settings: List[_NBClassifier] = []
 
     def add_classifier(self, classifier: Distribution, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False):
         if classifier == Distribution.MULTINOMIAL:
@@ -34,7 +34,7 @@ class MixedTypeNaiveBayesClassifier():
         elif classifier == Distribution.GAUSSIAN:
             nb_classifier = GaussianNB(**classifier_args)
 
-        self._classifer_settings.append(
+        self._classifier_settings.append(
             _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))
 
     def _expand_proportions(self, col: np.ndarray) -> np.ndarray:
@@ -44,7 +44,7 @@ class MixedTypeNaiveBayesClassifier():
     def _validate_slices(self, X):
         # Raise an error if the slices are not disjoint, i.e. raise an error if they overlap
         slice_set = set()
-        for classifer_settings in self._classifer_settings:
+        for classifer_settings in self._classifier_settings:
             if not slice_set.isdisjoint(set(range(classifer_settings.data_slice.start, classifer_settings.data_slice.stop))):
                 raise ValueError("The slices must be disjoint")
             slice_set.update(
@@ -59,20 +59,20 @@ class MixedTypeNaiveBayesClassifier():
 
     def fit(self, X, Y):
         self._validate_slices(X)
-        for classifer_settings in self._classifer_settings:
+        for classifer_settings in self._classifier_settings:
             X_slice = X[:, classifer_settings.data_slice]
             if classifer_settings.expand_multinomial_col:
                 X_slice = self._expand_proportions(X_slice)
             classifer_settings.nb_classifier.fit(X_slice, Y)
 
-    def predict(self, X):
-        return predict([cs.nb_classifier for cs in self._classifer_settings],
-                       [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifer_settings])
+    def predict(self, X) -> np.ndarray:
+        return predict([cs.nb_classifier for cs in self._classifier_settings],
+                       [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])
 
-    def predict_proba(self, X):
-        return predict_proba([cs.nb_classifier for cs in self._classifer_settings],
-                             [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifer_settings])
+    def predict_proba(self, X) -> np.ndarray:
+        return predict_proba([cs.nb_classifier for cs in self._classifier_settings],
+                             [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])
 
-    def predict_log_proba(self, X):
-        return predict_log_proba([cs.nb_classifier for cs in self._classifer_settings],
-                                 [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifer_settings])
+    def predict_log_proba(self, X) -> np.ndarray:
+        return predict_log_proba([cs.nb_classifier for cs in self._classifier_settings],
+                                 [X[:, cs.data_slice] if not cs.expand_multinomial_col else self._expand_proportions(X[:, cs.data_slice]) for cs in self._classifier_settings])
