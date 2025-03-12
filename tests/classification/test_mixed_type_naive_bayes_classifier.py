@@ -9,10 +9,10 @@ def test_add_classifier():
     mtc.add_classifier(Distribution.MULTINOMIAL, slice(0, 2), {})
     mtc.add_classifier(Distribution.BERNOULLI, slice(2, 4), {})
     mtc.add_classifier(Distribution.GAUSSIAN, slice(4, 6), {})
-    assert len(mtc._classifer_settings) == 3
-    assert mtc._classifer_settings[0].nb_classifier.__class__ == MultinomialNB
-    assert mtc._classifer_settings[1].nb_classifier.__class__ == BernoulliNB
-    assert mtc._classifer_settings[2].nb_classifier.__class__ == GaussianNB
+    assert len(mtc._classifier_settings) == 3
+    assert mtc._classifier_settings[0].nb_classifier.__class__ == MultinomialNB
+    assert mtc._classifier_settings[1].nb_classifier.__class__ == BernoulliNB
+    assert mtc._classifier_settings[2].nb_classifier.__class__ == GaussianNB
 
 
 @pytest.fixture
