@@ -2,10 +2,11 @@ import asyncio
 from typing import List
 from unittest.mock import patch
 
+import pandas as pd
 from pydantic import BaseModel
 import pytest
 from featuristic.features import extract
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
+from featuristic.features.feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.classification import Distribution
 
 
@@ -41,9 +42,9 @@ def test_extract_feature():
     data = [1, 2, 3]
     extracted_feature = extract._extract_feature(data, feature)
     assert len(extracted_feature.values) == 3
-    assert isinstance(extracted_feature, Feature)
-    assert extracted_feature.name == 'simple feature'
-    assert extracted_feature.values == [2, 4, 6]
+    assert isinstance(extracted_feature, pd.DataFrame)
+    assert extracted_feature.columns == ['simple feature']
+    assert extracted_feature['simple feature'].tolist() == [2, 4, 6]
 
 
 @pytest.mark.asyncio
@@ -67,10 +68,10 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
 
     data = ["The cat and dog are friends."]
     extracted_features = await extract._extract_prompt_features(data, [feature], config)
-    assert len(extracted_features) == 1  # one feature
-    assert isinstance(extracted_features, List)
-    assert extracted_features[0].name == 'animal_list'
-    assert extracted_features[0].values == [2]
+    assert len(extracted_features.columns) == 1  # one feature
+    assert isinstance(extracted_features, pd.DataFrame)
+    assert extracted_features.columns.tolist() == ['animal_list']
+    assert extracted_features['animal_list'].tolist() == [2]
 
 
 @patch('featuristic.features.extract._extract_features_with_llm')
@@ -118,22 +119,18 @@ def test_extract_features(mock_extract_features_with_llm):
     features = asyncio.run(extract.extract_features(data,
                                                     feature_definitions=[animal_list, contains_cow, char_count]))
 
-    assert isinstance(features, List)
-    assert len(features) == 3
-    assert len(features[0].values) == 2
-    assert len(features[1].values) == 2
-    assert len(features[2].values) == 2
+    assert isinstance(features, pd.DataFrame)
+    assert len(features.columns) == 3
+    assert features.columns.tolist() == [
+        'animal_list', 'contains_cow', 'char_count']
+    assert len(features) == 2
 
-    expected_features = [
-        Feature(name='animal_list', values=[2, 1]),
-        Feature(name='contains_cow', values=[False, True]),
-        Feature(name='char_count', values=[28, 24])
-    ]
+    expected_features = pd.DataFrame(
+        {"animal_list": [2, 1], "contains_cow": [False, True], "char_count": [28, 24]})
 
     assert len(features) == len(expected_features)
 
-    for i in range(len(features)):
-        assert features[i].values == expected_features[i].values
+    assert pd.DataFrame.equals(features, expected_features)
 
 
 def test_error_if_no_feature_definitions():

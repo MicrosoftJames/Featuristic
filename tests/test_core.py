@@ -1,8 +1,8 @@
 import numpy as np
+import pandas as pd
 import pytest
 from featuristic.classification.naive_bayes_classifier import Distribution
 from featuristic.core import FeaturisticClassifier
-from featuristic.features.feature import Feature
 
 
 def test_init_featuristic_classifier():
@@ -18,11 +18,11 @@ def test_init_featuristic_classifier():
 
 def test_fit_predict():
     # Create dummy data
-    train_features = [
-        Feature(name="feature1", values=[1.0, 2.0, 3.0]),
-        Feature(name="feature2", values=[4.0, 5.0, 6.0]),
-        Feature(name="feature3", values=[7.0, 8.0, 9.0])
-    ]
+    train_features = pd.DataFrame({
+        "feature1": [1.0, 2.0, 3.0],
+        "feature2": [4.0, 5.0, 6.0],
+        "feature3": [7.0, 8.0, 9.0]
+    })
 
     Y = np.array([0, 1, 1])
 
@@ -36,11 +36,11 @@ def test_fit_predict():
     classifier.fit(train_features, Y)
 
     # Create dummy test data
-    test_features = [
-        Feature(name="feature1", values=[1.0, 2.0, 3.0]),
-        Feature(name="feature2", values=[4.0, 5.0, 6.0]),
-        Feature(name="feature3", values=[7.0, 8.0, 9.0])
-    ]
+    test_features = pd.DataFrame({
+        "feature1": [1.0, 2.0, 3.0],
+        "feature2": [4.0, 5.0, 6.0],
+        "feature3": [7.0, 8.0, 9.0]
+    })
 
     # Predict
     predictions = classifier.predict(test_features)
@@ -51,11 +51,11 @@ def test_fit_predict():
 
 def test_invalid_fit():
     # Create dummy data
-    train_features = [
-        Feature(name="feature1", values=[1.0, 2.0, 3.0]),
-        Feature(name="feature2", values=[4.0, 5.0, 6.0]),
-        Feature(name="feature3", values=[7.0, 8.0, 9.0])
-    ]
+    train_features = pd.DataFrame({
+        "feature1": [1.0, 2.0, 3.0],
+        "feature2": [4.0, 5.0, 6.0],
+        "feature3": [7.0, 8.0, 9.0]
+    })
 
     Y = np.array([0, 1])
 
@@ -70,38 +70,12 @@ def test_invalid_fit():
         classifier.fit(train_features, Y)
 
 
-def test_validate_features():
-    # Valid features should not raise an exception
-    valid_features = [
-        Feature(name="feature1", values=[1.0, 2.0]),
-        Feature(name="feature2", values=[3.0, 4.0])
-    ]
-    FeaturisticClassifier._validate_features(
-        valid_features)  # Should not raise
-
-    # Test empty features list
-    with pytest.raises(ValueError, match="No features provided."):
-        FeaturisticClassifier._validate_features([])
-
-    # Test non-Feature objects
-    invalid_features = [
-        Feature(name="feature1", values=[1.0, 2.0]),
-        "not a feature"  # This is a string, not a Feature
-    ]
-    with pytest.raises(ValueError, match="All items in features must be of type Feature."):
-        FeaturisticClassifier._validate_features(invalid_features)
-
-    # Test None
-    with pytest.raises(ValueError, match="No features provided."):
-        FeaturisticClassifier._validate_features(None)
-
-
 def test_entropy_uniform_distribution():
     """Test entropy with uniform probability distribution (maximum entropy)."""
-    features_train = [
-        Feature(name="feature1", values=[1.0, 2.0]),
-        Feature(name="feature2", values=[2.0, 3.0])
-    ]
+    features_train = pd.DataFrame({
+        "feature1": [1.0, 2.0],
+        "feature2": [2.0, 3.0]
+    })
 
     Y_train = np.array([0, 1])
 
@@ -110,10 +84,10 @@ def test_entropy_uniform_distribution():
 
     classifier.fit(features_train, Y_train)
 
-    features_test = [
-        Feature(name="feature1", values=[1.5, 1.5]),
-        Feature(name="feature2", values=[2.5, 2.5])
-    ]
+    features_test = pd.DataFrame({
+        "feature1": [1.5, 1.5],
+        "feature2": [2.5, 2.5]
+    })
 
     entropy = classifier.calculate_entropy(features_test)
 
@@ -126,10 +100,10 @@ def test_entropy_uniform_distribution():
 
 def test_entropy_deterministic_distribution():
     """Test entropy with deterministic probability distribution (minimum entropy)."""
-    test_features = [
-        Feature(name="feature1", values=[1.0, 2.0]),
-        Feature(name="feature2", values=[3.0, 4.0])
-    ]
+    test_features = pd.DataFrame({
+        "feature1": [1.0, 2.0],
+        "feature2": [3.0, 4.0]
+    })
 
     classifier = FeaturisticClassifier(
         distributions=[Distribution.GAUSSIAN, Distribution.GAUSSIAN])
@@ -155,11 +129,11 @@ def test_entropy_deterministic_distribution():
 
 def test_rank_features_by_uncertainty():
     # Create dummy data
-    features_train = [
-        Feature(name="feature1", values=[1.0, 2.0, 4.0]),
-        Feature(name="feature2", values=[4.0, 5.0, 8.0]),
-        Feature(name="feature3", values=[7.0, 7.5, 20.0])
-    ]
+    features_train = pd.DataFrame({
+        "feature1": [1.0, 2.0, 4.0],
+        "feature2": [4.0, 5.0, 8.0],
+        "feature3": [7.0, 7.5, 20.0]
+    })
 
     Y = np.array([1, 1, 0])
 
@@ -175,15 +149,15 @@ def test_rank_features_by_uncertainty():
     # Create 3 test features - the first is the same as the training data (perfectly certain)
     # the second is a fractionally larger than the second training example (fractionally uncertain)
     # the third is halfway between the second and third training example (uncertain)
-    features_test = [
-        Feature(name="feature1", values=[1.0, 2.2, 3.0]),
-        Feature(name="feature2", values=[4.0, 5.5, 6.5]),
-        Feature(name="feature3", values=[7.0, 8.0, (7.5 + 20.0) / 2])
-    ]
+    features_test = pd.DataFrame({
+        "feature1": [1.0, 2.2, 3.0],
+        "feature2": [4.0, 5.5, 6.5],
+        "feature3": [7.0, 8.0, (7.5 + 20.0) / 2]
+    })
 
     # Rank features by uncertainty
-    ranked_features_idx = classifier.rank_features_by_uncertainty(
-        features_train)
+    ranked_features_idx = classifier.rank_by_uncertainty(
+        features_test)
 
     assert len(ranked_features_idx) == len(features_train)
     assert ranked_features_idx[2] == 0  # Most uncertain feature
