@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from featuristic.features.feature import Feature, FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
+from featuristic.features.feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.classification import Distribution
 
 
@@ -61,14 +61,3 @@ def test_prompt_feature_definition_group_with_preprocess_callback():
     assert config.preprocess_callback is not None
     assert config.preprocess_callback(
         Data("This is a test!")) == "This is a test"
-
-
-def test_feature():
-    name = "number of sentences"
-    value = 5
-    prompt_feature = Feature(
-        name=name,
-        values=[value],
-    )
-    assert prompt_feature.name == name
-    assert prompt_feature.values == [5]

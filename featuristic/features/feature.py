@@ -33,7 +33,7 @@ class PromptFeatureDefinition:
     """
     A custom prompt-based feature.
 
-    Args:
+        Args:
         name (str): The name of the feature.
         prompt (str): The prompt to be used to extract the feature.
         llm_return_type (type, optional): The return type of the feature. Defaults to str.
@@ -49,7 +49,7 @@ class PromptFeatureDefinition:
         >>> def feature_post_callback(x, my_data: MyData):
         ...     return x.upper()
 
-        >>> feature = Feature(
+        >>> feature_definition = PromptFeatureDefinition(
         ...     name="sentiment",
         ...     prompt="What is the sentiment of this text?",
         ...     llm_return_type=str,
@@ -63,9 +63,3 @@ class PromptFeatureDefinition:
     config: PromptFeatureConfiguration
     llm_return_type: type = str
     feature_post_callback: Optional[Callable] = None
-
-
-@dataclass
-class Feature:
-    name: str
-    values: List[Union[int, float]]
