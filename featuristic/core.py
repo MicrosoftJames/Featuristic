@@ -20,7 +20,7 @@ class FeaturisticClassifier:
         return classifier
 
     def fit(self, features: pd.DataFrame, Y):
-        X = features.values
+        X = features.to_numpy().astype(float)
 
         if not len(X) == len(Y):
             raise ValueError("Data and labels must have the same length.")
@@ -28,11 +28,11 @@ class FeaturisticClassifier:
         self._classifier.fit(X, Y)
 
     def predict(self, features: pd.DataFrame):
-        X = features.values
+        X = features.to_numpy().astype(float)
         return self._classifier.predict(X)
 
     def calculate_entropy(self, features: pd.DataFrame):
-        X = features.values
+        X = features.to_numpy().astype(float)
         proba = self._classifier.predict_proba(X)
         log_proba = self._classifier.predict_log_proba(X)
         return - np.sum(proba * log_proba, axis=1)
