@@ -1,3 +1,5 @@
+<img src="img/logo.png" alt="Featuristic"  width="100%" height="auto" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">
+
 # Featuristic
 
 Featuristic is a Python library that combines LLM-based feature extraction with bayesian classification. It allows you to define features using both traditional methods (i.e. pure python) and prompt-based methods using LLMs, and then train a bayesian classifier on the extracted features.
