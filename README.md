@@ -114,7 +114,7 @@ classifier.fit(
 
 # Predict using the classifier
 test_data = [
-    MyData("The battle of Stalingrad was a turning point in WW2.") # related to war
+    MyData("The battle of Stalingrad was a turning point in WW2.") # related to war, expected label is 1
 ]
 
 test_feature_df = await extract_features(test_data, feature_definitions)
