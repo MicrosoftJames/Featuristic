@@ -91,6 +91,19 @@ def _get_prompt_feature_definitions_with_config(feature_definitions: List[Union[
 
 
 async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]]) -> pd.DataFrame:
+    """Extract features from the data using the provided feature definitions.
+
+    Args:
+        data (List): The input data to extract features from.
+        feature_definitions (List[Union[FeatureDefinition, PromptFeatureDefinition]]): A list of feature definitions.
+            Each feature definition can be either a FeatureDefinition or a PromptFeatureDefinition.
+            FeatureDefinition is a class that defines a python-based feature extraction method.
+            PromptFeatureDefinition is a class that defines a feature extraction method using a language model.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the extracted features. The columns of the DataFrame are named according to the feature definitions provided.
+
+    """
     if len(feature_definitions) == 0:
         raise ValueError(
             "No feature definitions have been added to the Featuristic object.")
