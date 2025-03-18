@@ -6,7 +6,16 @@ from featuristic.classification import MixedTypeNaiveBayesClassifier
 
 
 class FeaturisticClassifier:
+    """A wrapper class for the MixedTypeNaiveBayesClassifier.
+    """
+
     def __init__(self, distributions: List[Distribution]):
+        """Initializes the classifier with the given distributions.
+
+        Args:
+            distributions (List[Distribution]): A list of distributions to use for the classifier 
+            where each distribution corresponds to a column in the data based on the column order.
+        """
         self._classifier = self._initialize_classifier(distributions)
 
     @staticmethod
@@ -20,6 +29,11 @@ class FeaturisticClassifier:
         return classifier
 
     def fit(self, features: pd.DataFrame, Y):
+        """Fits the classifier to the features and labels.
+        Args:
+            features (pd.DataFrame): The features to fit.
+            Y (pd.Series): The labels to fit.
+        """
         X = features.to_numpy().astype(float)
 
         if not len(X) == len(Y):
@@ -28,10 +42,23 @@ class FeaturisticClassifier:
         self._classifier.fit(X, Y)
 
     def predict(self, features: pd.DataFrame):
+        """Predicts the labels for the given features.
+        Args:
+            features (pd.DataFrame): The features to predict.
+        Returns:
+            numpy array (shape=(n_samples,)): Array of predicted labels.
+        """
         X = features.to_numpy().astype(float)
         return self._classifier.predict(X)
 
     def calculate_entropy(self, features: pd.DataFrame):
+        """Calculates the entropy of the predicted class probabilities for each feature.
+
+        Args:
+            features (pd.DataFrame): Features to calculate entropy for.
+        Returns:
+            numpy array (shape=(n_samples,)): Array of entropies for each feature.
+        """
         X = features.to_numpy().astype(float)
         proba = self._classifier.predict_proba(X)
         log_proba = self._classifier.predict_log_proba(X)
@@ -47,7 +74,7 @@ class FeaturisticClassifier:
             features (pd.DataFrame): Features to rank.
 
         Returns:
-            numpy array (shape=(n_features,)): Array of feature indices sorted by increasing certainty (decreasing entropy).
+            numpy array (shape=(n_samples,)): Array of feature indices sorted by increasing certainty (decreasing entropy).
         """
         entropies = self.calculate_entropy(features)
         # Sort by decreasing entropy

@@ -1,12 +1,12 @@
 # Featuristic
 
-Featuristic is a Python library designed to extract features from text data using both traditional and prompt-based methods. It leverages the power of large language models (LLMs) to extract complex features from text.
+Featuristic is a Python library that combines LLM-based feature extraction with bayesian classification. It allows you to define features using both traditional methods (i.e. pure python) and prompt-based methods using LLMs, and then train a bayesian classifier on the extracted features.
 
-## Features
+## Key Features
 
-- **Traditional Feature Extraction**: Define features using simple preprocessing callbacks.
 - **Prompt-based Feature Extraction**: Define features using prompts and extract them using LLMs.
-- **Batch Processing**: Efficiently process large datasets in batches.
+- **Batch Processing**: Efficiently process large datasets in batched calls to the LLM.
+- **Bayesian Classification**: Train a bayesian classifier on the extracted features, allowing for mixed distribution types.
 
 ## Installation
 
@@ -20,67 +20,115 @@ pip install -r requirements.txt
 
 ### Define Features
 
-You can define both traditional and prompt-based features.
+You can define both pure python features and prompt-based features.
 
-#### Traditional Feature
+#### Pure Python Feature
 
 ```python
-from featuristic.feature import FeatureDefinition
+from featuristic import FeatureDefinition, Distribution
 
 num_sentences = FeatureDefinition(
-    name="number of sentences", preprocess_callback=lambda x: len(x.text.split('.')))
+    name="number of sentences", 
+    preprocess_callback=lambda x: len(x.text.split('.')),
+    distribution=Distribution.GAUSSIAN)
 ```
 
 #### Prompt-based Feature
 
 ```python
-from featuristic.feature import PromptFeatureDefinition, PromptFeatureDefinitionGroup
+from featuristic import PromptFeatureDefinition, PromptFeatureConfiguration, Distribution
+
+# Define the prompt feature configuration
+# This configuration is used to call the LLM
+# and extract features.
+# All PromptFeatureDefinitions that use this configuration
+# will be extracted using the same LLM call.
+config = PromptFeatureConfiguration(
+    aoai_api_key="your_api_key",
+    aoai_api_endpoint="your_api_endpoint",
+    gpt4o_deployment="gpt-4o",
+    preprocess_callback=lambda x: x.text,
+)
 
 mention_of_war = PromptFeatureDefinition(
-    name="mention of war", prompt="Whether or not the notion of war is mentioned", llm_return_type=bool)
+    name="mention of war", 
+    prompt="Whether or not the notion of war is mentioned",
+    distribution=Distribution.BERNOULLI,
+    llm_return_type=bool,
+    config=config
+)
 
-group = PromptFeatureDefinitionGroup(
-    features=[mention_of_war], preprocess_callback=lambda x: x.text)  # x.text is used to access the text data to be processed
 ```
 
 ### Initialize Featuristic
 
 ```python
-from featuristic.featuristic import Featuristic
+from featuristic import FeaturisticClassifier
 
-featuristic = Featuristic(aoai_api_key="your_api_key", aoai_api_endpoint="your_api_endpoint")
-```
+feature_definitions = [
+    num_sentences,
+    mention_of_war]
 
-### Add Feature Definitions
-
-```python
-featuristic.add_feature_definition(num_sentences)
-featuristic.add_feature_definition(group)
+featuristic = FeaturisticClassifier(distributions=[d.distribution for d in feature_definitions])
 ```
 
 ### Extract Features
 
 ```python
-import asyncio
+from featuristic import extract_features
+from dataclasses import dataclass
 
 @dataclass
 class MyData:
     text: str
 
+data = [MyData("The United States and Russia are not at war."), # related to war
+        MyData("Free healthcare should be a human right. For everyone."),]
+feature_df = await extract_features(data, feature_definitions)
 
-data = [MyData("The United States and Russia are at war.")]
-results = asyncio.run(featuristic.extract(data))
-print(results)
+print(feature_df)
 ```
+will output:
 
-The output will be:
+|| number of sentences | mention of war |
+|---|---------------------|----------------|
+|0| 2                   | True           |
+|1| 3                   | False          |
+
+### Train Classifier
+```python
+from featuristic import FeaturisticClassifier
+
+# Define the classifier
+classifier = FeaturisticClassifier(
+    distributions=[d.distribution for d in feature_definitions],
+)
+
+# Train the classifier
+classifier.fit(
+    feature_df,
+    Y=[1, 0],  # Labels for the data
+)
+
+# Predict using the classifier
+test_data = [
+    MyData("The battle of Stalingrad was a turning point in WW2.") # related to war
+]
+
+test_feature_df = await extract_features(test_data, feature_definitions)
+
+predictions = classifier.predict(
+    test_feature_df,
+)
+print(predictions)
+```
+will output:
 
 ```
-[[Feature(name='number of sentences', value=2), [PromptFeature(name='mention of war', value=True)]]]
+[1]
 ```
 
 ## Running Tests
-
 To run the tests, use:
 
 ```bash

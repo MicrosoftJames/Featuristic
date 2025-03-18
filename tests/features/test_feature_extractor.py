@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import dataclass
 from typing import List
 from unittest.mock import patch
 
@@ -26,21 +27,13 @@ def test_dynamic_pydantic_model():
     assert dynamic_pydantic_model.__name__ == 'FeaturesSchema'
 
 
-def test_preprocess_data():
-    feature = FeatureDefinition(
-        name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.MULTINOMIAL)
-
-    data = [1, 2, 3]
-    preprocessed_data = extract._preprocess_data(data, feature)
-    assert preprocessed_data == [2, 4, 6]
-
-
 def test_extract_feature():
     feature = FeatureDefinition(
         name='simple feature', preprocess_callback=lambda x: x*2, distribution=Distribution.GAUSSIAN)
 
     data = [1, 2, 3]
-    extracted_feature = extract._extract_feature(data, feature)
+    extracted_feature = extract._extract_feature(
+        data, feature)
     assert len(extracted_feature.values) == 3
     assert isinstance(extracted_feature, pd.DataFrame)
     assert extracted_feature.columns == ['simple feature']
@@ -68,6 +61,31 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
 
     data = ["The cat and dog are friends."]
     extracted_features = await extract._extract_prompt_features(data, [feature], config)
+
+    assert len(extracted_features.columns) == 1  # one feature
+    assert isinstance(extracted_features, pd.DataFrame)
+    assert extracted_features.columns.tolist() == ['animal_list']
+    assert extracted_features['animal_list'].tolist() == [2]
+
+    # Test using dataclass to hold data
+    @dataclass
+    class SimpleData:
+        content: str
+    data = [SimpleData(content="The cat and dog are friends.")]
+
+    config = PromptFeatureConfiguration(
+        aoai_api_endpoint="https://example.com",
+        aoai_api_key="example",
+        # extract the content of the dataclass
+        preprocess_callback=lambda x: x.content)
+
+    feature = PromptFeatureDefinition(
+        name='animal_list', prompt='extract a list of animals',
+        llm_return_type=List[str], feature_post_callback=lambda x, _: len(x),
+        distribution=Distribution.MULTINOMIAL, config=config)
+
+    extracted_features = await extract._extract_prompt_features(data, [feature], config)
+
     assert len(extracted_features.columns) == 1  # one feature
     assert isinstance(extracted_features, pd.DataFrame)
     assert extracted_features.columns.tolist() == ['animal_list']

@@ -37,13 +37,9 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
     return results
 
 
-def _preprocess_data(data, feature_definition: Union[FeatureDefinition, PromptFeatureDefinition]):
-    return [feature_definition.preprocess_callback(d) for d in data]
-
-
 def _extract_feature(data: List, feature_definition: FeatureDefinition) -> pd.DataFrame:
-    preprocessed_data_points = _preprocess_data(
-        data, feature_definition)
+    preprocessed_data_points = [
+        feature_definition.preprocess_callback(d) for d in data]
 
     return pd.DataFrame({
         feature_definition.name: preprocessed_data_points
@@ -52,8 +48,8 @@ def _extract_feature(data: List, feature_definition: FeatureDefinition) -> pd.Da
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
                                    config: PromptFeatureConfiguration) -> pd.DataFrame:
-    preprocessed_data_points = _preprocess_data(
-        data, prompt_feature_definitions) if config.preprocess_callback else data
+    preprocessed_data_points = [
+        config.preprocess_callback(d) for d in data] if config.preprocess_callback else data
 
     schema = _get_dynamic_pydantic_model(prompt_feature_definitions)
     llm_responses: List[BaseModel] = await _extract_features_batch(
@@ -91,6 +87,19 @@ def _get_prompt_feature_definitions_with_config(feature_definitions: List[Union[
 
 
 async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]]) -> pd.DataFrame:
+    """Extract features from the data using the provided feature definitions.
+
+    Args:
+        data (List): The input data to extract features from.
+        feature_definitions (List[Union[FeatureDefinition, PromptFeatureDefinition]]): A list of feature definitions.
+            Each feature definition can be either a FeatureDefinition or a PromptFeatureDefinition.
+            FeatureDefinition is a class that defines a python-based feature extraction method.
+            PromptFeatureDefinition is a class that defines a feature extraction method using a language model.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the extracted features. The columns of the DataFrame are named according to the feature definitions provided.
+
+    """
     if len(feature_definitions) == 0:
         raise ValueError(
             "No feature definitions have been added to the Featuristic object.")

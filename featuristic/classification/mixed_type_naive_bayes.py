@@ -6,6 +6,17 @@ from sklearn.naive_bayes import _BaseNB
 
 
 def predict_log_proba(bayesian_classifiers: List[_BaseNB], Xs: List[np.ndarray]):
+    """Calculate the log-probabilities of the classes for each sample.
+    This function takes a list of fitted Sklearn Naive Bayes classifiers and a list of
+    feature matrices and returns the log-probabilities of the classes for each
+    sample in the feature matrices.
+
+    Args:
+        bayesian_classifiers (List[_BaseNB]): List of fitted Naive Bayes classifiers.
+        Xs (List[np.ndarray]): List of feature matrices.
+    Returns:
+        np.ndarray: Log-probabilities of the classes for each sample.
+    """
 
     log_class_priors = [bc.class_log_prior_ if hasattr(bc, "class_log_prior_") else np.log(
         bc.class_prior_)for bc in bayesian_classifiers]
@@ -27,10 +38,30 @@ def predict_log_proba(bayesian_classifiers: List[_BaseNB], Xs: List[np.ndarray])
 
 
 def predict_proba(baysian_classifiers: List[_BaseNB], Xs: List[np.ndarray]):
+    """Calculate the probabilities of the classes for each sample.
+    This function takes a list of fitted Naive Bayes classifiers and a list of
+    feature matrices and returns the probabilities of the classes for each
+    sample in the feature matrices.
+    Args:
+        baysian_classifiers (List[_BaseNB]): List of fitted Naive Bayes classifiers.
+        Xs (List[np.ndarray]): List of feature matrices.
+    Returns:
+        np.ndarray: Probabilities of the classes for each sample.
+    """
     # Shape: (n_samples, n_classes)
     return np.exp(predict_log_proba(baysian_classifiers, Xs))
 
 
 def predict(baysian_classifiers: List[_BaseNB], Xs: List[np.ndarray]):
+    """Predict the class labels for each sample.
+    This function takes a list of fitted Naive Bayes classifiers and a list of
+    feature matrices and returns the predicted class labels for each sample in
+    the feature matrices.
+    Args:
+        baysian_classifiers (List[_BaseNB]): List of fitted Naive Bayes classifiers.
+        Xs (List[np.ndarray]): List of feature matrices.
+    Returns:
+        np.ndarray: Predicted class labels for each sample.
+    """
     # Shape: (n_samples, n_classes)
     return np.argmax(predict_proba(baysian_classifiers, Xs), axis=1)

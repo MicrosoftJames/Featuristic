@@ -20,7 +20,10 @@ def test_prompt_feature_definition():
 
     config = PromptFeatureConfiguration(
         system_prompt="You are a helpful assistant.",
-        preprocess_callback=None
+        preprocess_callback=None,
+        aoai_api_key="test-key",
+        aoai_api_endpoint="https://test-endpoint.com",
+        gpt4o_deployment="test-deployment"
     )
 
     feature = PromptFeatureDefinition(
@@ -41,7 +44,10 @@ def test_prompt_feature_definition():
 def test_prompt_feature_configuration():
     config = PromptFeatureConfiguration(
         system_prompt="You are a helpful assistant.",
-        preprocess_callback=None
+        preprocess_callback=None,
+        aoai_api_key="test-key",
+        aoai_api_endpoint="https://test-endpoint.com",
+        gpt4o_deployment="test-deployment"
     )
 
     assert config.system_prompt == "You are a helpful assistant."
@@ -51,7 +57,10 @@ def test_prompt_feature_configuration():
 def test_prompt_feature_definition_group_with_preprocess_callback():
     config = PromptFeatureConfiguration(
         system_prompt="You are a helpful assistant.",
-        preprocess_callback=lambda x: x.text.strip("!")
+        preprocess_callback=lambda x: x.text.strip("!"),
+        aoai_api_key="test-key",
+        aoai_api_endpoint="https://test-endpoint.com",
+        gpt4o_deployment="test-deployment"
     )
 
     @dataclass

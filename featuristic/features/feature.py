@@ -9,6 +9,19 @@ You will be given a text input and your job is to extract features according to 
 
 @dataclass(frozen=True)
 class PromptFeatureConfiguration:
+    """A configuration class for prompt-based features. All PromptFeatureDefinition instances 
+    that share this configuration will be extracted using the same call to the LLM.
+
+    Currently, this library only supports GPT-4o deployments via the Azure OpenAI Service.
+
+    Args:
+        aoai_api_key (str): The Azure OpenAI API key.
+        aoai_api_endpoint (str): The Azure OpenAI API endpoint.
+        gpt4o_deployment (str): The deployment name for the GPT-4 model.
+        preprocess_callback (Optional[Callable]): A function to preprocess the data before extracting the feature.
+            The function should take a single argument, which is the data point, and return the preprocessed data point.
+        system_prompt (Optional[str]): The system prompt to be used for the LLM. Defaults to SYSTEM_MESSAGE.
+    """
     aoai_api_key: str = AOAI_API_KEY
     aoai_api_endpoint: str = AOAI_API_ENDPOINT
     gpt4o_deployment: str = GPT4O_DEPLOYMENT
@@ -32,6 +45,13 @@ class PromptFeatureConfiguration:
 
 @dataclass
 class FeatureDefinition:
+    """A python-based feature.
+    Args:
+        name (str): The name of the feature.
+        preprocess_callback (Optional[Callable]): A function to preprocess the data before extracting the feature.
+            The function should take a single argument, which is the data point, and return the preprocessed data point.
+        distribution (Distribution): The distribution of the feature.
+    """
     preprocess_callback: Optional[Callable]
     name: str
     distribution: Distribution
@@ -39,12 +59,14 @@ class FeatureDefinition:
 
 @dataclass
 class PromptFeatureDefinition:
-    """
-    A custom prompt-based feature.
+    """A custom prompt-based feature.
 
         Args:
         name (str): The name of the feature.
         prompt (str): The prompt to be used to extract the feature.
+        distribution (Distribution): The distribution of the feature.
+        config (PromptFeatureConfiguration): The configuration for the prompt feature. All PromptFeatureDefinition instances
+            that share this configuration will be extracted using the same call to the LLM.
         llm_return_type (type, optional): The return type of the feature. Defaults to str.
         feature_post_callback (Optional[Callable], optional): A post-processing function to apply to the feature. Defaults to None.
             The post-processing function will be called with the feature value and the original data object.
