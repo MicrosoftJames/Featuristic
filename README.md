@@ -42,7 +42,7 @@ from featuristic import PromptFeatureDefinition, PromptFeatureConfiguration, Dis
 # This configuration is used to call the LLM
 # and extract features.
 # All PromptFeatureDefinitions that use this configuration
-# will be extracted using the same LLM call.
+# will be extracted using the same LLM call using 'structured outputs'.
 config = PromptFeatureConfiguration(
     aoai_api_key="your_api_key",
     aoai_api_endpoint="your_api_endpoint",
