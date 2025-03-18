@@ -37,13 +37,9 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
     return results
 
 
-def _preprocess_data(data, feature_definition: Union[FeatureDefinition, PromptFeatureDefinition]):
-    return [feature_definition.preprocess_callback(d) for d in data]
-
-
 def _extract_feature(data: List, feature_definition: FeatureDefinition) -> pd.DataFrame:
-    preprocessed_data_points = _preprocess_data(
-        data, feature_definition)
+    preprocessed_data_points = [
+        feature_definition.preprocess_callback(d) for d in data]
 
     return pd.DataFrame({
         feature_definition.name: preprocessed_data_points
@@ -52,8 +48,8 @@ def _extract_feature(data: List, feature_definition: FeatureDefinition) -> pd.Da
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
                                    config: PromptFeatureConfiguration) -> pd.DataFrame:
-    preprocessed_data_points = _preprocess_data(
-        data, prompt_feature_definitions) if config.preprocess_callback else data
+    preprocessed_data_points = [
+        config.preprocess_callback(d) for d in data] if config.preprocess_callback else data
 
     schema = _get_dynamic_pydantic_model(prompt_feature_definitions)
     llm_responses: List[BaseModel] = await _extract_features_batch(
