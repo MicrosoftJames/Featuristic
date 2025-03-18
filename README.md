@@ -1,4 +1,4 @@
-<img src="img/logo.png" alt="Featuristic"  width="100%" height="auto" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">
+<img src="img/logo.png" alt="Featuristic"  width="200px" height="auto" style="display: block; margin-left: auto; margin-right: auto">
 
 # Featuristic
 
