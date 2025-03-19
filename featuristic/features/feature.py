@@ -10,14 +10,14 @@ You will be given a text input and your job is to extract features according to 
 @dataclass(frozen=True)
 class PromptFeatureConfiguration:
     """A configuration class for prompt-based features. All PromptFeatureDefinition instances 
-    that share this configuration will be extracted using the same call to the LLM.
-
-    Currently, this library only supports GPT-4o deployments via the Azure OpenAI Service.
+    that share this configuration will be extracted using the same call to the LLM. The model must 
+    support structured outputs, such as gpt-4o. The api variables follow litellm.
 
     Args:
-        aoai_api_key (str): The Azure OpenAI API key.
-        aoai_api_endpoint (str): The Azure OpenAI API endpoint.
-        gpt4o_deployment (str): The deployment name for the GPT-4 model.
+        api_key (str): The API key for the service.
+        api_base (str): The API base URL for the service.
+        api_version (str): The API version to use.
+        model (str): The deployment name for the model.
         preprocess_callback (Optional[Callable]): A function to preprocess the data before extracting the feature.
             The function should take a single argument, which is the data point, and return the preprocessed data point.
         system_prompt (Optional[str]): The system prompt to be used for the LLM. Defaults to SYSTEM_MESSAGE.

@@ -46,9 +46,10 @@ from featuristic import PromptFeatureDefinition, PromptFeatureConfiguration, Dis
 # All PromptFeatureDefinitions that use this configuration
 # will be extracted using the same LLM call using 'structured outputs'.
 config = PromptFeatureConfiguration(
-    aoai_api_key="your_api_key",
-    aoai_api_endpoint="your_api_endpoint",
-    gpt4o_deployment="gpt-4o",
+    api_key="your_api_key",
+    api_base="your_api_endpoint",
+    moedl="gpt-4o", # any model that supports structured outputs
+    api_version="api_version",
     preprocess_callback=lambda x: x.text,
 )
 
