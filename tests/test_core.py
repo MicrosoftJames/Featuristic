@@ -55,7 +55,7 @@ def test_invalid_fit():
         "feature1": [1.0, 2.0, 3.0],
         "feature2": [4.0, 5.0, 6.0],
         "feature3": [7.0, 8.0, 9.0]
-    })
+    }, index=["a", "b", "c"])
 
     Y = np.array([0, 1])
 

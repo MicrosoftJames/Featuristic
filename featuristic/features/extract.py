@@ -1,6 +1,6 @@
 import asyncio
 import pandas as pd
-from typing import List, Union
+from typing import List, Optional, Union
 
 
 from pydantic import BaseModel, Field, create_model
@@ -86,7 +86,7 @@ def _get_prompt_feature_definitions_with_config(feature_definitions: List[Union[
     return prompt_feature_definitions
 
 
-async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]]) -> pd.DataFrame:
+async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]], ids: Optional[List] = None) -> pd.DataFrame:
     """Extract features from the data using the provided feature definitions.
 
     Args:
@@ -95,6 +95,7 @@ async def extract_features(data: List, feature_definitions: List[Union[FeatureDe
             Each feature definition can be either a FeatureDefinition or a PromptFeatureDefinition.
             FeatureDefinition is a class that defines a python-based feature extraction method.
             PromptFeatureDefinition is a class that defines a feature extraction method using a language model.
+        ids (Optional[List]): An optional list of ids to use as the index for the DataFrame. The length of this list must match the length of the data.
 
     Returns:
         pd.DataFrame: A DataFrame containing the extracted features. The columns of the DataFrame are named according to the feature definitions provided.
@@ -103,6 +104,10 @@ async def extract_features(data: List, feature_definitions: List[Union[FeatureDe
     if len(feature_definitions) == 0:
         raise ValueError(
             "No feature definitions have been added to the Featuristic object.")
+
+    if ids is not None and len(data) != len(ids):
+        raise ValueError(
+            "The length of data and ids must be the same.")
 
     unique_prompt_feature_configs = _get_unique_prompt_feature_configs(
         feature_definitions)
@@ -123,6 +128,10 @@ async def extract_features(data: List, feature_definitions: List[Union[FeatureDe
             feature = _extract_feature(
                 data, feature_definition)
             features = pd.concat([features, feature], axis=1)
+
+    # Add ids to the DataFrame as the index if provided
+    if ids is not None:
+        features.index = ids
 
     # Sort features based on the order of feature definitions provided
     feature_names = [

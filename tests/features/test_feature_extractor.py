@@ -151,6 +151,37 @@ def test_extract_features(mock_extract_features_with_llm):
     assert pd.DataFrame.equals(features, expected_features)
 
 
+def test_extract_features_with_provided_index():
+    data = ["The cat and dog are friends.", "The cow is in the field."]
+    ids = ["doc1", "doc2"]
+
+    char_count = FeatureDefinition(
+        name='char_count', preprocess_callback=lambda x: len(x), distribution=Distribution.GAUSSIAN)
+
+    features = asyncio.run(
+        extract.extract_features(data, [char_count], ids=ids))
+
+    assert isinstance(features, pd.DataFrame)
+    assert len(features) == 2
+    assert features.index.tolist() == ids
+    assert features.columns.tolist() == ['char_count']
+    assert features['char_count'].tolist() == [28, 24]
+
+    with pytest.raises(ValueError):
+        asyncio.run(extract.extract_features(data, [char_count], ids=["doc1"]))
+
+    data = ["The cat and dog are friends.", "The cow is in the field."]
+    ids = ["doc1", "doc1"]
+
+    char_count = FeatureDefinition(
+        name='char_count', preprocess_callback=lambda x: len(x), distribution=Distribution.GAUSSIAN)
+
+    features = asyncio.run(
+        extract.extract_features(data, [char_count], ids=ids))
+
+    assert len(set(features.index.tolist())) == 1
+
+
 def test_error_if_no_feature_definitions():
     with pytest.raises(ValueError):
         asyncio.run(extract.extract_features([1, 2, 3], []))
