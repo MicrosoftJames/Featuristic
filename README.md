@@ -48,7 +48,7 @@ from featuristic import PromptFeatureDefinition, PromptFeatureConfiguration, Dis
 config = PromptFeatureConfiguration(
     api_key="your_api_key",
     api_base="your_api_endpoint",
-    moedl="gpt-4o", # any model that supports structured outputs
+    model="gpt-4o", # any model that supports structured outputs
     api_version="api_version",
     preprocess_callback=lambda x: x.text,
 )
