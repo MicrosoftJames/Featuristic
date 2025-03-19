@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Optional, List, Union
+from typing import Callable, Optional
 from featuristic.classification import Distribution
 from featuristic.features import AOAI_API_ENDPOINT, AOAI_API_KEY, GPT4O_DEPLOYMENT
 
