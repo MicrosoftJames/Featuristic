@@ -30,7 +30,7 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
         for text in texts[i * batch_size: (i + 1) * batch_size]:
             task = asyncio.create_task(
                 _extract_features_with_llm(text, schema, config.system_prompt,
-                                           config.aoai_api_key, config.aoai_api_endpoint, config.gpt4o_deployment))
+                                           config.api_key, config.api_base, config.api_version, config.model))
             tasks.append(task)
         results.extend(await asyncio.gather(*tasks))
 

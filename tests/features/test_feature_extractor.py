@@ -51,8 +51,10 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
                                                            "cat", "dog"])
 
     config = PromptFeatureConfiguration(
-        aoai_api_endpoint="https://example.com",
-        aoai_api_key="example",
+        api_base="https://example.com",
+        api_key="example",
+        api_version="2023-10-01",
+        model="gpt-4o",
         preprocess_callback=None)
     feature = PromptFeatureDefinition(
         name='animal_list', prompt='extract a list of animals',
@@ -74,8 +76,10 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
     data = [SimpleData(content="The cat and dog are friends.")]
 
     config = PromptFeatureConfiguration(
-        aoai_api_endpoint="https://example.com",
-        aoai_api_key="example",
+        api_key="example",
+        api_base="https://example.com",
+        api_version="2023-10-01",
+        model="gpt-4o",
         # extract the content of the dataclass
         preprocess_callback=lambda x: x.content)
 
@@ -112,8 +116,10 @@ def test_extract_features(mock_extract_features_with_llm):
     mock_extract_features_with_llm.side_effect = _side_effect
 
     config = PromptFeatureConfiguration(
-        aoai_api_endpoint="https://example.com",
-        aoai_api_key="example",
+        api_base="https://example.com",
+        api_key="example",
+        api_version="2023-10-01",
+        model="gpt-4o",
         preprocess_callback=None)
     animal_list = PromptFeatureDefinition(
         name='animal_list',
@@ -189,10 +195,11 @@ def test_error_if_no_feature_definitions():
 
 def test_get_unique_prompt_feature_configs():
     config1 = PromptFeatureConfiguration(
-        aoai_api_key="example1", aoai_api_endpoint="https://example1.com")
+        api_key="example1", api_base="https://example1.com", api_version="2023-10-01", model="gpt-4o")
     config2 = PromptFeatureConfiguration(
-        aoai_api_key="example2",
-        aoai_api_endpoint="https://example2.com")
+        api_key="example2",
+        api_base="https://example2.com",
+        api_version="2023-10-01", model="gpt-4o")
 
     feature_definitions = [
         PromptFeatureDefinition(name='feature1', prompt='prompt1',
@@ -213,10 +220,10 @@ def test_get_unique_prompt_feature_configs():
 
 def test_get_prompt_feature_definitions_with_config():
     config1 = PromptFeatureConfiguration(
-        aoai_api_key="example1", aoai_api_endpoint="https://example1.com")
+        api_key="example1", api_base="https://example1.com")
     config2 = PromptFeatureConfiguration(
-        aoai_api_key="example2",
-        aoai_api_endpoint="https://example2.com")
+        api_key="example2",
+        api_base="https://example2.com")
 
     feature_definitions = [
         PromptFeatureDefinition(name='feature1', prompt='prompt1',

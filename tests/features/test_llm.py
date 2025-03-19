@@ -9,27 +9,31 @@ from featuristic.features.llm import _extract_features_with_llm
 
 
 @pytest.mark.asyncio
-@mock.patch('featuristic.features.llm.AzureChatOpenAI.with_structured_output')
-async def test_extract_features_with_llm(mock_with_structured_output):
-    mock_with_structured_output.return_value = mock.Mock()
+@mock.patch('featuristic.features.llm.acompletion')
+async def test_extract_features_with_llm(mock_acompletion):
+    class MockResponse:
+        class MockChoice:
+            class MockMessage:
+                content = '{"animal_list": ["cat", "dog"]}'
+            message = MockMessage()
+        choices = [MockChoice()]
 
-    class Response(BaseModel):
-        animal_list: List[str]
-        additional_kwargs: dict = {"parsed": True}
-
-    async def mock_ainvoke(*args, **kwargs):
-        return Response(animal_list=["cat", "dog"])
-
-    mock_with_structured_output.return_value.ainvoke.side_effect = mock_ainvoke
+    mock_acompletion.return_value = MockResponse()
 
     data = "The cat and dog are friends."
     system_prompt = "Extract the list of animals from the text"
-    aoai_api_key = "test"
-    aoai_api_endpoint = "test"
+    api_key = "example"
+    api_base = "https://example.com"
+    api_version = "2023-10-01"
+    model = "gpt-4o"
 
     class FeaturesSchema(BaseModel):
         animal_list: List[str]
 
     schema = FeaturesSchema
-    result = await _extract_features_with_llm(data, schema, system_prompt, aoai_api_key, aoai_api_endpoint)
+    result = await _extract_features_with_llm(data, schema, system_prompt,
+                                              api_key, api_base, api_version, model)
     assert result.animal_list == ["cat", "dog"]
+    assert mock_acompletion.called
+    assert mock_acompletion.call_count == 1
+    assert mock_acompletion.call_args[1]['model'] == model

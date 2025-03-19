@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Optional
 from featuristic.classification import Distribution
-from featuristic.features import AOAI_API_ENDPOINT, AOAI_API_KEY, GPT4O_DEPLOYMENT
+from featuristic.features import API_BASE, API_KEY, API_VERSION, MODEL
 
 SYSTEM_MESSAGE = """You are helpful AI assistant that extracts machine learning features from text.
 You will be given a text input and your job is to extract features according to the JSON schema provided."""
@@ -22,19 +22,12 @@ class PromptFeatureConfiguration:
             The function should take a single argument, which is the data point, and return the preprocessed data point.
         system_prompt (Optional[str]): The system prompt to be used for the LLM. Defaults to SYSTEM_MESSAGE.
     """
-    aoai_api_key: str = AOAI_API_KEY
-    aoai_api_endpoint: str = AOAI_API_ENDPOINT
-    gpt4o_deployment: str = GPT4O_DEPLOYMENT
+    api_key: str = API_KEY
+    api_base: str = API_BASE
+    api_version: str = API_VERSION
+    model: str = MODEL
     preprocess_callback: Optional[Callable] = None
     system_prompt: Optional[str] = SYSTEM_MESSAGE
-
-    def __post_init__(self):
-        if not self.aoai_api_key:
-            raise ValueError("AOAI_API_KEY is not set.")
-        if not self.aoai_api_endpoint:
-            raise ValueError("AOAI_API_ENDPOINT is not set.")
-        if not self.gpt4o_deployment:
-            raise ValueError("GPT4O_DEPLOYMENT is not set.")
 
     def __eq__(self, other):
         return self is other
