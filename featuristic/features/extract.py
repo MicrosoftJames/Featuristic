@@ -1,4 +1,6 @@
 import asyncio
+import litellm
+from litellm.caching.caching import Cache
 import pandas as pd
 from typing import List, Optional, Union
 
@@ -30,7 +32,7 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
         for text in texts[i * batch_size: (i + 1) * batch_size]:
             task = asyncio.create_task(
                 _extract_features_with_llm(text, schema, config.system_prompt,
-                                           config.api_key, config.api_base, config.api_version, config.model))
+                                           config.api_key, config.api_base, config.api_version, config.model, config.use_cache))
             tasks.append(task)
         results.extend(await asyncio.gather(*tasks))
 
@@ -46,8 +48,19 @@ def _extract_feature(data: List, feature_definition: FeatureDefinition) -> pd.Da
     })
 
 
+class CustomCache(Cache):
+    def get_cache_key(self, *args, **kwargs):
+        key = super().get_cache_key(*args, **kwargs)
+        return key + str(kwargs.get("response_format", "").model_json_schema())
+
+
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
                                    config: PromptFeatureConfiguration) -> pd.DataFrame:
+
+    if config.use_cache and not litellm.cache:
+        cache = CustomCache(type="disk")
+        litellm.cache = cache
+
     preprocessed_data_points = [
         config.preprocess_callback(d) for d in data] if config.preprocess_callback else data
 

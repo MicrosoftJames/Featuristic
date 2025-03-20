@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Optional
 from featuristic.classification import Distribution
-from featuristic.features import API_BASE, API_KEY, API_VERSION, MODEL
+from featuristic.features import API_BASE, API_KEY, API_VERSION, USE_CACHE, MODEL
 
 SYSTEM_MESSAGE = """You are helpful AI assistant that extracts machine learning features from text.
 You will be given a text input and your job is to extract features according to the JSON schema provided."""
@@ -26,6 +26,7 @@ class PromptFeatureConfiguration:
     api_base: str = API_BASE
     api_version: str = API_VERSION
     model: str = MODEL
+    use_cache: bool = USE_CACHE
     preprocess_callback: Optional[Callable] = None
     system_prompt: Optional[str] = SYSTEM_MESSAGE
 

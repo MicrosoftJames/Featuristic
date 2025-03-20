@@ -2,7 +2,7 @@ from litellm import acompletion, supports_response_schema
 from pydantic import BaseModel
 
 
-async def _extract_features_with_llm(text, schema: BaseModel, system_prompt: str, api_key: str, api_base: str, api_version: str, model: str):
+async def _extract_features_with_llm(text, schema: BaseModel, system_prompt: str, api_key: str, api_base: str, api_version: str, model: str, use_cache: bool = False):
     """Extract features using the Azure OpenAI LLM."""
     messages = [
         {"role": "system", "content": system_prompt},
@@ -19,6 +19,7 @@ async def _extract_features_with_llm(text, schema: BaseModel, system_prompt: str
                              api_key=api_key,
                              base_url=api_base,
                              api_version=api_version,
-                             temperature=0)
+                             temperature=0,
+                             caching=use_cache)
 
     return schema.model_validate_json(resp.choices[0].message.content)
