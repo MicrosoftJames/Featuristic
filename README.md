@@ -45,10 +45,11 @@ from featuristic import PromptFeatureDefinition, PromptFeatureConfiguration, Dis
 # and extract features.
 # All PromptFeatureDefinitions that use this configuration
 # will be extracted using the same LLM call using 'structured outputs'.
+# Featuristic uses litellm to call the LLM and uses the provider pattern (see https://docs.litellm.ai/docs/providers)
 config = PromptFeatureConfiguration(
     api_key="your_api_key",
     api_base="your_api_endpoint",
-    model="gpt-4o", # any model that supports structured outputs
+    model="azure/gpt-4o", # any model that supports structured outputs using litellm
     api_version="api_version",
     preprocess_callback=lambda x: x.text,
 )
