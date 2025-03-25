@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, create_model
 
 from featuristic.features.feature import FeatureDefinition,  PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.features.llm import _extract_features_with_llm
+from litellm import BadRequestError
 
 
 def _get_dynamic_pydantic_model(prompt_feature_definitions: List[PromptFeatureDefinition]):
@@ -26,7 +27,7 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
     iterations = (len(texts) // batch_size) + \
         min(len(texts) % batch_size, 1)
 
-    results = []
+    results: List[Union[BaseModel, BadRequestError]] = []
     for i in range(iterations):
         tasks = []
         for text in texts[i * batch_size: (i + 1) * batch_size]:
@@ -34,7 +35,7 @@ async def _extract_features_batch(texts: List[str], schema: BaseModel, config: P
                 _extract_features_with_llm(text, schema, config.system_prompt,
                                            config.api_key, config.api_base, config.api_version, config.model, config.use_cache))
             tasks.append(task)
-        results.extend(await asyncio.gather(*tasks))
+        results.extend(await asyncio.gather(*tasks, return_exceptions=True))
 
     return results
 
@@ -72,10 +73,13 @@ async def _extract_prompt_features(data: List, prompt_feature_definitions: Promp
     for definition in prompt_feature_definitions:
         values = []
         for response, data_point in zip(llm_responses, data):
-            v = getattr(response, definition.name)
-            v = definition.feature_post_callback(
-                v, data_point) if definition.feature_post_callback else v
-            values.append(v)
+            if isinstance(response, Exception):
+                values.append(response)
+            else:
+                v = getattr(response, definition.name)
+                v = definition.feature_post_callback(
+                    v, data_point) if definition.feature_post_callback else v
+                values.append(v)
 
         features[definition.name] = values
 
