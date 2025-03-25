@@ -1,4 +1,4 @@
-from litellm import acompletion, supports_response_schema
+from litellm import acompletion, supports_response_schema, ContentPolicyViolationError
 from pydantic import BaseModel
 
 
@@ -13,13 +13,18 @@ async def _extract_features_with_llm(text, schema: BaseModel, system_prompt: str
         raise ValueError(
             "The provided model does not support json_schema response format.")
 
-    resp = await acompletion(model=model,
-                             messages=messages,
-                             response_format=schema,
-                             api_key=api_key,
-                             base_url=api_base,
-                             api_version=api_version,
-                             temperature=0,
-                             caching=use_cache)
+    try:
+        resp = await acompletion(model=model,
+                                 messages=messages,
+                                 response_format=schema,
+                                 api_key=api_key,
+                                 base_url=api_base,
+                                 api_version=api_version,
+                                 temperature=0,
+                                 caching=use_cache)
 
-    return schema.model_validate_json(resp.choices[0].message.content)
+        return schema.model_validate_json(resp.choices[0].message.content)
+
+    except ContentPolicyViolationError as e:
+        print(f"Content policy violation: {e}")
+        raise e

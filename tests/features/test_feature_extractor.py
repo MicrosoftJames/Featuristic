@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pandas as pd
 from pydantic import BaseModel
 import pytest
+from litellm import ContentPolicyViolationError
 from featuristic.features import extract
 from featuristic.features.feature import FeatureDefinition, PromptFeatureDefinition, PromptFeatureConfiguration
 from featuristic.classification import Distribution
@@ -246,3 +247,78 @@ def test_get_prompt_feature_definitions_with_config():
 
     assert len(results) == 1
     assert results[0] == feature_definitions[1]
+
+
+@pytest.mark.asyncio
+@patch('featuristic.features.extract._extract_features_with_llm')
+async def test_extract_features_batch(mock_extract_features_with_llm):
+    mock_extract_features_with_llm.return_value = "mocked response"
+
+    data = ["text1", "text2", "text3"]
+    schema = BaseModel
+    config = PromptFeatureConfiguration(
+        api_key="example",
+        api_base="https://example.com",
+        api_version="2023-10-01",
+        model="gpt-4o",
+        preprocess_callback=None,
+        use_cache=False
+    )
+
+    results = await extract._extract_features_batch(data, schema, config)
+
+    assert len(results) == 3
+    assert all(result == "mocked response" for result in results)
+
+    mock_extract_features_with_llm.side_effect = [
+        "mocked response 1",
+        "mocked response 2",
+        ContentPolicyViolationError("mocked error", "gpt-4o", "test-provider")
+    ]
+
+    results = await extract._extract_features_batch(data, schema, config)
+
+    assert len(results) == 3
+    assert results[0] == "mocked response 1"
+    assert results[1] == "mocked response 2"
+    assert isinstance(results[2], ContentPolicyViolationError)
+
+
+@pytest.mark.asyncio
+@patch('featuristic.features.extract._extract_features_with_llm')
+async def test_extract_prompt_features_exception(mock_extract_features_with_llm):
+    data = ["text1", "text2", "text3"]
+    feature_definitions = [
+        PromptFeatureDefinition(name='feature1',
+                                prompt='prompt1',
+                                llm_return_type=str,
+                                distribution=Distribution.MULTINOMIAL,
+                                config=None)
+    ]
+    config = PromptFeatureConfiguration(
+        api_key="example",
+        api_base="https://example.com",
+        api_version="2023-10-01",
+        model="gpt-4o",
+        preprocess_callback=None,
+        use_cache=False
+    )
+
+    class MockResponse(BaseModel):
+        feature1: str
+
+    mock_extract_features_with_llm.side_effect = [
+        MockResponse(feature1="mocked response"),
+        ContentPolicyViolationError("mocked error", "gpt-4o", "test-provider"),
+        MockResponse(feature1="mocked response")
+    ]
+
+    results = await extract._extract_prompt_features(
+        data, feature_definitions, config)
+
+    assert len(results) == 3
+    assert isinstance(results, pd.DataFrame)
+    assert results.columns.tolist() == ['feature1']
+    assert results['feature1'].tolist()[0] == "mocked response"
+    assert isinstance(results['feature1'].tolist()[
+                      1], ContentPolicyViolationError)
