@@ -51,6 +51,16 @@ class FeaturisticClassifier:
         X = features.to_numpy().astype(float)
         return self._classifier.predict(X)
 
+    def predict_proba(self, features: pd.DataFrame):
+        """Predicts the class probabilities for the given features.
+        Args:
+            features (pd.DataFrame): The features to predict.
+        Returns:
+            numpy array (shape=(n_samples, n_classes)): Array of predicted class probabilities.
+        """
+        X = features.to_numpy().astype(float)
+        return self._classifier.predict_proba(X)
+
     def calculate_entropy(self, features: pd.DataFrame):
         """Calculates the entropy of the predicted class probabilities for each feature.
 
