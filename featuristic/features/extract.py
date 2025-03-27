@@ -22,8 +22,7 @@ def _get_dynamic_pydantic_model(prompt_feature_definitions: List[PromptFeatureDe
     return FeaturesSchema
 
 
-async def _extract_features_batch(texts: List[str], schema: BaseModel, config: PromptFeatureConfiguration):
-    batch_size = 50
+async def _extract_features_batch(texts: List[str], schema: BaseModel, config: PromptFeatureConfiguration, batch_size: int):
     iterations = (len(texts) // batch_size) + \
         min(len(texts) % batch_size, 1)
 
@@ -62,7 +61,7 @@ class CustomCache(Cache):
 
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
-                                   config: PromptFeatureConfiguration) -> pd.DataFrame:
+                                   config: PromptFeatureConfiguration, batch_size: int) -> pd.DataFrame:
 
     if config.use_cache and not litellm.cache:
         cache = CustomCache(type="disk")
@@ -73,7 +72,7 @@ async def _extract_prompt_features(data: List, prompt_feature_definitions: Promp
 
     schema = _get_dynamic_pydantic_model(prompt_feature_definitions)
     llm_responses: List[BaseModel] = await _extract_features_batch(
-        preprocessed_data_points, schema, config)
+        preprocessed_data_points, schema, config, batch_size)
 
     features = pd.DataFrame()
     for definition in prompt_feature_definitions:
@@ -109,7 +108,7 @@ def _get_prompt_feature_definitions_with_config(feature_definitions: List[Union[
     return prompt_feature_definitions
 
 
-async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]], ids: Optional[List] = None) -> pd.DataFrame:
+async def extract_features(data: List, feature_definitions: List[Union[FeatureDefinition, PromptFeatureDefinition]], ids: Optional[List] = None, batch_size: int = 50) -> pd.DataFrame:
     """Extract features from the data using the provided feature definitions.
 
     Args:
@@ -119,6 +118,7 @@ async def extract_features(data: List, feature_definitions: List[Union[FeatureDe
             FeatureDefinition is a class that defines a python-based feature extraction method.
             PromptFeatureDefinition is a class that defines a feature extraction method using a language model.
         ids (Optional[List]): An optional list of ids to use as the index for the DataFrame. The length of this list must match the length of the data.
+        batch_size (int): The size of batches for LLM calls. Default is 50.
 
     Returns:
         pd.DataFrame: A DataFrame containing the extracted features. The columns of the DataFrame are named according to the feature definitions provided.
@@ -141,7 +141,7 @@ async def extract_features(data: List, feature_definitions: List[Union[FeatureDe
             feature_definitions, config)
 
         prompt_features = await _extract_prompt_features(
-            data, prompt_feature_definitions_with_config, config)
+            data, prompt_feature_definitions_with_config, config, batch_size)
 
         features = pd.concat([features, prompt_features], axis=1)
 

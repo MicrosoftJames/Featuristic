@@ -63,7 +63,7 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
         distribution=Distribution.MULTINOMIAL, config=config)
 
     data = ["The cat and dog are friends."]
-    extracted_features = await extract._extract_prompt_features(data, [feature], config)
+    extracted_features = await extract._extract_prompt_features(data, [feature], config, batch_size=50)
 
     assert len(extracted_features.columns) == 1  # one feature
     assert isinstance(extracted_features, pd.DataFrame)
@@ -89,7 +89,7 @@ async def test_extract_prompt_features(mock_extract_features_with_llm):
         llm_return_type=List[str], feature_post_callback=lambda x, _: len(x),
         distribution=Distribution.MULTINOMIAL, config=config)
 
-    extracted_features = await extract._extract_prompt_features(data, [feature], config)
+    extracted_features = await extract._extract_prompt_features(data, [feature], config, batch_size=50)
 
     assert len(extracted_features.columns) == 1  # one feature
     assert isinstance(extracted_features, pd.DataFrame)
@@ -265,7 +265,7 @@ async def test_extract_features_batch(mock_extract_features_with_llm):
         use_cache=False
     )
 
-    results = await extract._extract_features_batch(data, schema, config)
+    results = await extract._extract_features_batch(data, schema, config, batch_size=2)
 
     assert len(results) == 3
     assert all(result == "mocked response" for result in results)
@@ -276,7 +276,7 @@ async def test_extract_features_batch(mock_extract_features_with_llm):
         ContentPolicyViolationError("mocked error", "gpt-4o", "test-provider")
     ]
 
-    results = await extract._extract_features_batch(data, schema, config)
+    results = await extract._extract_features_batch(data, schema, config, batch_size=2)
 
     assert len(results) == 3
     assert results[0] == "mocked response 1"
@@ -314,7 +314,7 @@ async def test_extract_prompt_features_exception(mock_extract_features_with_llm)
     ]
 
     results = await extract._extract_prompt_features(
-        data, feature_definitions, config)
+        data, feature_definitions, config, batch_size=50)
 
     assert len(results) == 3
     assert isinstance(results, pd.DataFrame)
