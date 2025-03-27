@@ -54,6 +54,12 @@ class CustomCache(Cache):
         key = super().get_cache_key(*args, **kwargs)
         return key + str(kwargs.get("response_format", "").model_json_schema())
 
+    async def async_get_cache(self, **kwargs):
+        result = await super().async_get_cache(**kwargs)
+        if result is not None:
+            print(f"Cache hit for key: {self.get_cache_key(**kwargs)}")
+        return result
+
 
 async def _extract_prompt_features(data: List, prompt_feature_definitions: PromptFeatureDefinition,
                                    config: PromptFeatureConfiguration) -> pd.DataFrame:
