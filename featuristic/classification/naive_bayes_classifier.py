@@ -37,7 +37,7 @@ class MixedTypeNaiveBayesClassifier():
     def __init__(self):
         self._classifier_settings: List[_NBClassifier] = []
 
-    def add_classifier(self, distribution: Distribution, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False):
+    def add_classifier(self, distribution: Distribution, data_slice: slice, classifier_args: dict = {}, expand_multinomial_col=False, class_prior=None):
         """Adds a classifier to the list of classifiers.
 
         Args:
@@ -45,15 +45,21 @@ class MixedTypeNaiveBayesClassifier():
             data_slice (slice): The slice of the data columns to used for this classifier.
             classifier_args (dict): The arguments to pass to the corresponding sklearn classifier.
             expand_multinomial_col (bool): Whether to expand the multinomial column into two columns.
+            class_prior (array-like of shape (n_classes,), default=None):
+                Prior probabilities of the classes. If specified, the priors are not
+                adjusted according to the data.
         """
         if distribution == Distribution.MULTINOMIAL:
-            nb_classifier = MultinomialNB(**classifier_args)
+            nb_classifier = MultinomialNB(**classifier_args,
+                                          class_prior=class_prior)
 
         elif distribution == Distribution.BERNOULLI:
-            nb_classifier = BernoulliNB(**classifier_args)
+            nb_classifier = BernoulliNB(**classifier_args,
+                                        class_prior=class_prior)
 
         elif distribution == Distribution.GAUSSIAN:
-            nb_classifier = GaussianNB(**classifier_args)
+            nb_classifier = GaussianNB(**classifier_args,
+                                       priors=class_prior)
 
         self._classifier_settings.append(
             _NBClassifier(nb_classifier, data_slice, expand_multinomial_col))

@@ -51,10 +51,10 @@ def test_predict_proba(gaussian_data):
 
     mtc = MixedTypeNaiveBayesClassifier()
 
-    mtc.add_classifier(Distribution.GAUSSIAN, slice(0, 2), classifier_args={
-        "priors": np.array([0.5, 0.5])})
-    mtc.add_classifier(Distribution.GAUSSIAN, slice(2, 4), classifier_args={
-        "priors": np.array([0.4, 0.6])})
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(0, 2),
+                       class_prior=np.array([0.5, 0.5]))
+    mtc.add_classifier(Distribution.GAUSSIAN, slice(2, 4),
+                       class_prior=np.array([0.4, 0.6]))
 
     mtc.fit(X_train, Y_train)
 
