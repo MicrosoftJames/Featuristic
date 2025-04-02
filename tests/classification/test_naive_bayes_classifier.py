@@ -3,6 +3,7 @@ import pytest
 from sklearn.naive_bayes import BernoulliNB, GaussianNB, MultinomialNB
 
 from featuristic.classification.mixed_type_naive_bayes import predict_log_proba, predict_proba
+from featuristic.classification.naive_bayes_classifier import MixedTypeNaiveBayesClassifier, Distribution
 
 
 @pytest.fixture
@@ -238,3 +239,70 @@ def test_predict_log_proba():
 
     np.testing.assert_allclose(proba[0][0], P_Xa_Xb_y0/normalizer)
     np.testing.assert_allclose(proba[0][1], P_Xa_Xb_y1/normalizer)
+
+
+def test_specifying_priors_gaussian(gaussian_data):
+    X_train, Y_train, X_test, Y_test = gaussian_data
+
+    # Define priors
+    gaussian_prior = [0.6, 0.4]
+
+    # Initialize the classifier
+    classifier = MixedTypeNaiveBayesClassifier()
+
+    # Add Gaussian classifier with specified priors
+    classifier.add_classifier(Distribution.GAUSSIAN, slice(
+        0, 4), class_prior=gaussian_prior)
+
+    # Fit the classifier
+    classifier.fit(X_train, Y_train)
+
+    # Perform predictions
+    predictions = classifier.predict(X_test)
+    probabilities = classifier.predict_proba(X_test)
+
+    # Assert predictions and probabilities are valid
+    assert predictions.shape == Y_test.shape
+    assert probabilities.shape == (X_test.shape[0], len(np.unique(Y_train)))
+
+    # Ensure priors are correctly set
+    assert np.allclose(
+        classifier._classifier_settings[0].nb_classifier.class_prior_, gaussian_prior)
+
+
+def test_specifying_priors_multinomial(multinomial_data):
+    X_feature_1_train, X_feature_2_train, Y_train, X_feature_1_test, X_feature_2_test, Y_test = multinomial_data
+
+    # Define priors
+    multinomial_prior = [0.7, 0.3]
+
+    # Initialize the classifier
+    classifier = MixedTypeNaiveBayesClassifier()
+
+    # Add Multinomial classifiers with specified priors
+    classifier.add_classifier(Distribution.MULTINOMIAL, slice(
+        0, 4), class_prior=multinomial_prior)
+    classifier.add_classifier(Distribution.MULTINOMIAL, slice(
+        4, 8), class_prior=multinomial_prior)
+
+    # Combine features for testing
+    X_train_combined = np.hstack((X_feature_1_train, X_feature_2_train))
+    X_test_combined = np.hstack((X_feature_1_test, X_feature_2_test))
+
+    # Fit the classifier
+    classifier.fit(X_train_combined, Y_train)
+
+    # Perform predictions
+    predictions = classifier.predict(X_test_combined)
+    probabilities = classifier.predict_proba(X_test_combined)
+
+    # Assert predictions and probabilities are valid
+    assert predictions.shape == Y_test.shape
+    assert probabilities.shape == (
+        X_test_combined.shape[0], len(np.unique(Y_train)))
+
+    # Ensure priors are correctly set
+    assert np.allclose(
+        classifier._classifier_settings[0].nb_classifier.class_log_prior_, np.log(multinomial_prior))
+    assert np.allclose(
+        classifier._classifier_settings[1].nb_classifier.class_log_prior_, np.log(multinomial_prior))

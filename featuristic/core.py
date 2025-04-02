@@ -9,17 +9,21 @@ class FeaturisticClassifier:
     """A wrapper class for the MixedTypeNaiveBayesClassifier.
     """
 
-    def __init__(self, distributions: List[Distribution]):
-        """Initializes the classifier with the given distributions.
+    def __init__(self, distributions: List[Distribution], class_prior=None):
+        """Initializes the classifier with the given distributions and class prior.
 
         Args:
-            distributions (List[Distribution]): A list of distributions to use for the classifier 
+        distributions (List[Distribution]): A list of distributions to use for the classifier 
             where each distribution corresponds to a column in the data based on the column order.
+        class_prior (array-like of shape (n_classes,), default=None): 
+            Prior probabilities of the classes. If specified, the priors are not
+            adjusted according to the data.
         """
-        self._classifier = self._initialize_classifier(distributions)
+        self._classifier = self._initialize_classifier(
+            distributions, class_prior)
 
     @staticmethod
-    def _initialize_classifier(distributions: List[Distribution]):
+    def _initialize_classifier(distributions: List[Distribution], class_prior=None):
         classifier = MixedTypeNaiveBayesClassifier()
         data_slice_start = 0
         for distribution in distributions:
