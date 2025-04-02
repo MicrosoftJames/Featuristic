@@ -28,7 +28,7 @@ class FeaturisticClassifier:
         data_slice_start = 0
         for distribution in distributions:
             classifier.add_classifier(distribution, slice(
-                data_slice_start, data_slice_start + 1))
+                data_slice_start, data_slice_start + 1), class_prior=class_prior)
             data_slice_start += 1
         return classifier
 
